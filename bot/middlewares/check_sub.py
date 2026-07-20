@@ -29,11 +29,6 @@ class CheckSubscriptionMiddleware(BaseMiddleware):
         if not user or not bot:
             return await handler(event, data)
 
-        # Bypass check for bot admins
-        admin_ids = get_admin_ids()
-        if user.id in admin_ids:
-            return await handler(event, data)
-
         # Get list of required channels dynamically from .env
         required_channels = get_required_channels()
         if not required_channels:
@@ -41,6 +36,11 @@ class CheckSubscriptionMiddleware(BaseMiddleware):
 
         # Allow callback query 'check_subscription' to proceed to its handler
         if isinstance(event, CallbackQuery) and event.data == "check_subscription":
+            return await handler(event, data)
+
+        # Allow /admin command for admins without blocking
+        admin_ids = get_admin_ids()
+        if isinstance(event, Message) and event.text and event.text.startswith("/admin") and user.id in admin_ids:
             return await handler(event, data)
 
         # Check subscription status

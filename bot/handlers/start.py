@@ -30,11 +30,10 @@ async def cmd_start(message: Message, db: Database, bot: Bot):
         username=user.username,
     )
 
-    # 2. Check channel subscriptions (unless admin)
-    admin_ids = get_admin_ids()
+    # 2. Check channel subscriptions
     required_channels = get_required_channels()
 
-    if user.id not in admin_ids and required_channels:
+    if required_channels:
         all_sub, unsubscribed = await check_channel_subscriptions(
             bot=bot, user_id=user.id, channels=required_channels
         )
