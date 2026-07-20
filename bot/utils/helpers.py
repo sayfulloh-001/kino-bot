@@ -18,6 +18,7 @@ async def check_channel_subscriptions(
     for channel in channels:
         try:
             member = await bot.get_chat_member(chat_id=channel, user_id=user_id)
+            logger.info(f"Check sub: User {user_id} status in {channel} is '{member.status}'")
             # Valid statuses for subscribed member
             if member.status not in ["creator", "administrator", "member"]:
                 unsubscribed.append(channel)
