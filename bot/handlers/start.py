@@ -41,8 +41,9 @@ async def cmd_start(message: Message, db: Database, bot: Bot):
 
         if not all_sub:
             sub_text = (
-                "📢 <b>Botdan foydalanish uchun quyidagi kanallarga a'zo bo'ling.</b>\n\n"
-                "Kanallarga a'zo bo'lgach, <b>✅ Tekshirish</b> tugmasini bosing."
+                "⚠️ <b>Kanalga obuna bo'lmagansiz!</b>\n\n"
+                "🎬 Kino qidirish va tomosha qilish uchun iltimos, avval kanalga <b>obuna bo'ling</b>.\n\n"
+                "Kanallarga obuna bo'lgach, <b>✅ Tekshirish</b> tugmasini bosing."
             )
             keyboard = get_sub_channels_keyboard(unsubscribed)
             await message.answer(sub_text, reply_markup=keyboard, parse_mode="HTML")

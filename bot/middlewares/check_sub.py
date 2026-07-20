@@ -53,8 +53,9 @@ class CheckSubscriptionMiddleware(BaseMiddleware):
 
         # User is not subscribed to all channels
         sub_text = (
-            "📢 <b>Botdan foydalanish uchun quyidagi kanallarga a'zo bo'ling.</b>\n\n"
-            "Kanallarga a'zo bo'lgach, <b>✅ Tekshirish</b> tugmasini bosing."
+            "⚠️ <b>Kanalga obuna bo'lmagansiz!</b>\n\n"
+            "🎬 Kino qidirish va tomosha qilish uchun iltimos, avval kanalga <b>obuna bo'ling</b>.\n\n"
+            "Kanallarga obuna bo'lgach, <b>✅ Tekshirish</b> tugmasini bosing."
         )
         keyboard = get_sub_channels_keyboard(unsubscribed)
 
@@ -63,7 +64,7 @@ class CheckSubscriptionMiddleware(BaseMiddleware):
             return None
         elif isinstance(event, CallbackQuery):
             await event.answer(
-                "📢 Botdan foydalanish uchun barcha kanallarga a'zo bo'ling!",
+                "📢 Kino qidirish uchun avval kanalga obuna bo'ling!",
                 show_alert=True,
             )
             if event.message:
