@@ -13,6 +13,9 @@ from bot.middlewares.check_sub import CheckSubscriptionMiddleware
 from bot.handlers import start_router, admin_router, user_router, movie_router
 
 # Configure logging
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",

@@ -48,7 +48,7 @@ class CheckSubscriptionMiddleware(BaseMiddleware):
             bot=bot, user_id=user.id, channels=required_channels
         )
 
-        logger.info(f"Middleware sub check for user {user.id} ({user.full_name}): all_sub={all_sub}, unsubscribed={unsubscribed}")
+        logger.info(f"Middleware sub check for user {user.id}: all_sub={all_sub}, unsubscribed={unsubscribed}")
 
         if all_sub:
             return await handler(event, data)
