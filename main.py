@@ -11,6 +11,7 @@ from bot.config import BOT_TOKEN, DB_PATH
 from bot.database.database import Database
 from bot.middlewares.check_sub import CheckSubscriptionMiddleware
 from bot.handlers import start_router, admin_router, user_router, movie_router
+from bot.utils.bot_manager import BotManager
 
 import os
 import threading
@@ -81,6 +82,10 @@ async def main() -> None:
     # Inject database into workflow data for handlers and middlewares
     dp["db"] = db
 
+    # Instantiate and register BotManager for dynamic child bots
+    bot_manager = BotManager(dp=dp, db=db)
+    dp["bot_manager"] = bot_manager
+
     # Attach mandatory channel subscription middleware
     check_sub_middleware = CheckSubscriptionMiddleware()
     dp.message.outer_middleware(check_sub_middleware)
@@ -91,6 +96,9 @@ async def main() -> None:
     dp.include_router(admin_router)
     dp.include_router(user_router)
     dp.include_router(movie_router)
+
+    # Start polling for all registered child bots in background
+    await bot_manager.start_all(bot)
 
     logger.info("Bot successfully started polling!")
 

@@ -21,6 +21,7 @@ class Database:
                     telegram_id BIGINT UNIQUE NOT NULL,
                     fullname TEXT,
                     username TEXT,
+                    bot_token TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 """
@@ -43,8 +44,74 @@ class Database:
                 );
                 """
             )
+            await db.execute(
+                """
+                CREATE TABLE IF NOT EXISTS child_bots (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id BIGINT NOT NULL,
+                    token TEXT UNIQUE NOT NULL,
+                    bot_username TEXT,
+                    bot_name TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                """
+            )
             await db.commit()
+
+            # Dynamic migration: Add bot_token to users if it doesn't exist
+            try:
+                await db.execute("ALTER TABLE users ADD COLUMN bot_token TEXT;")
+                await db.commit()
+            except Exception:
+                pass # Column already exists or table not yet populated
+
             logger.info("Database tables initialized successfully.")
+
+    # ==================== CHILD BOTS METHODS ====================
+
+    async def add_child_bot(
+        self,
+        user_id: int,
+        token: str,
+        bot_username: str,
+        bot_name: str,
+    ) -> bool:
+        """Save a new registered child bot token to DB."""
+        async with aiosqlite.connect(self.db_path) as db:
+            try:
+                await db.execute(
+                    """
+                    INSERT INTO child_bots (user_id, token, bot_username, bot_name)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(token) DO UPDATE SET
+                        bot_username = excluded.bot_username,
+                        bot_name = excluded.bot_name;
+                    """,
+                    (user_id, token.strip(), bot_username.strip(), bot_name.strip()),
+                )
+                await db.commit()
+                return True
+            except Exception as e:
+                logger.error(f"Error adding child bot {bot_username}: {e}")
+                return False
+
+    async def get_all_child_bots(self) -> List[Dict[str, Any]]:
+        """Fetch all registered child bots."""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("SELECT * FROM child_bots ORDER BY id ASC") as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+
+    async def get_child_bot_by_token(self, token: str) -> Optional[Dict[str, Any]]:
+        """Fetch child bot by its bot token."""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(
+                "SELECT * FROM child_bots WHERE token = ?", (token.strip(),)
+            ) as cursor:
+                row = await cursor.fetchone()
+                return dict(row) if row else None
 
     # ==================== USER METHODS ====================
 
@@ -53,19 +120,21 @@ class Database:
         telegram_id: int,
         fullname: Optional[str] = None,
         username: Optional[str] = None,
+        bot_token: Optional[str] = None,
     ) -> bool:
-        """Register or update user in database."""
+        """Register or update user in database with bot_token mapping."""
         async with aiosqlite.connect(self.db_path) as db:
             try:
                 await db.execute(
                     """
-                    INSERT INTO users (telegram_id, fullname, username)
-                    VALUES (?, ?, ?)
+                    INSERT INTO users (telegram_id, fullname, username, bot_token)
+                    VALUES (?, ?, ?, ?)
                     ON CONFLICT(telegram_id) DO UPDATE SET
                         fullname = excluded.fullname,
-                        username = excluded.username;
+                        username = excluded.username,
+                        bot_token = COALESCE(excluded.bot_token, users.bot_token);
                     """,
-                    (telegram_id, fullname, username),
+                    (telegram_id, fullname, username, bot_token),
                 )
                 await db.commit()
                 return True
@@ -83,29 +152,59 @@ class Database:
                 row = await cursor.fetchone()
                 return dict(row) if row else None
 
-    async def get_all_users(self) -> List[Dict[str, Any]]:
-        """Fetch all registered users."""
+    async def get_all_users(self, bot_token: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Fetch users registered through a specific bot."""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            if bot_token:
+                async with db.execute(
+                    "SELECT * FROM users WHERE bot_token = ? ORDER BY id ASC", (bot_token,)
+                ) as cursor:
+                    rows = await cursor.fetchall()
+            else:
+                async with db.execute("SELECT * FROM users ORDER BY id ASC") as cursor:
+                    rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def get_all_users_global(self) -> List[Dict[str, Any]]:
+        """Fetch all unique users globally across all bots."""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute("SELECT * FROM users ORDER BY id ASC") as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
 
-    async def count_users(self) -> int:
-        """Count total registered users."""
+    async def count_users(self, bot_token: Optional[str] = None) -> int:
+        """Count total registered users for a specific bot or globally."""
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute("SELECT COUNT(*) FROM users") as cursor:
-                row = await cursor.fetchone()
-                return row[0] if row else 0
+            if bot_token:
+                async with db.execute(
+                    "SELECT COUNT(*) FROM users WHERE bot_token = ?", (bot_token,)
+                ) as cursor:
+                    row = await cursor.fetchone()
+            else:
+                async with db.execute("SELECT COUNT(*) FROM users") as cursor:
+                    row = await cursor.fetchone()
+            return row[0] if row else 0
 
-    async def count_today_users(self) -> int:
-        """Count users registered today."""
+    async def count_today_users(self, bot_token: Optional[str] = None) -> int:
+        """Count users registered today for a specific bot or globally."""
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute(
-                "SELECT COUNT(*) FROM users WHERE DATE(created_at) = DATE('now', 'localtime')"
-            ) as cursor:
-                row = await cursor.fetchone()
-                return row[0] if row else 0
+            if bot_token:
+                async with db.execute(
+                    """
+                    SELECT COUNT(*) FROM users 
+                    WHERE bot_token = ? AND DATE(created_at) = DATE('now', 'localtime')
+                    """,
+                    (bot_token,),
+                ) as cursor:
+                    row = await cursor.fetchone()
+            else:
+                async with db.execute(
+                    "SELECT COUNT(*) FROM users WHERE DATE(created_at) = DATE('now', 'localtime')"
+                ) as cursor:
+                    row = await cursor.fetchone()
+            return row[0] if row else 0
 
     # ==================== MOVIE METHODS ====================
 

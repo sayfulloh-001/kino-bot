@@ -56,15 +56,19 @@ async def cmd_admin(message: Message, state: FSMContext):
 
 # ==================== STATISTIKA ====================
 @admin_router.message(F.text == "📊 Statistika")
-async def btn_stats(message: Message, db: Database):
+async def btn_stats(message: Message, db: Database, bot: Bot):
     """Displays bot statistics."""
-    total_users = await db.count_users()
-    today_users = await db.count_today_users()
+    from bot.config import BOT_TOKEN
+    is_main = (bot.token == BOT_TOKEN)
+    
+    total_users = await db.count_users(None if is_main else bot.token)
+    today_users = await db.count_today_users(None if is_main else bot.token)
     total_movies = await db.count_movies()
     total_views = await db.count_total_views()
 
+    scope_name = "BOT" if is_main else f"@{ (await bot.get_me()).username }"
     stats_text = (
-        "📊 <b>BOT STATISTIKASI</b>\n\n"
+        f"📊 <b>{scope_name} STATISTIKASI</b>\n\n"
         f"👥 <b>Jami foydalanuvchilar:</b> {total_users:,} ta\n"
         f"📅 <b>Bugungi foydalanuvchilar:</b> {today_users:,} ta\n"
         f"🎬 <b>Jami kinolar:</b> {total_movies:,} ta\n"
@@ -77,14 +81,18 @@ async def btn_stats(message: Message, db: Database):
 
 # ==================== FOYDALANUVCHILAR ====================
 @admin_router.message(F.text == "👥 Foydalanuvchilar")
-async def btn_users(message: Message, db: Database):
+async def btn_users(message: Message, db: Database, bot: Bot):
     """Displays user count breakdown."""
-    total_users = await db.count_users()
-    today_users = await db.count_today_users()
+    from bot.config import BOT_TOKEN
+    is_main = (bot.token == BOT_TOKEN)
+    
+    total_users = await db.count_users(None if is_main else bot.token)
+    today_users = await db.count_today_users(None if is_main else bot.token)
 
+    scope_name = "Botga" if is_main else f"@{ (await bot.get_me()).username } botiga"
     text = (
-        "👥 <b>FOYDALANUVCHILAR MA'LUMOTI</b>\n\n"
-        f"🔹 Jami ro'yxatdan o'tganlar: <b>{total_users}</b> ta\n"
+        f"👥 <b>FOYDALANUVCHILAR MA'LUMOTI</b>\n\n"
+        f"🔹 {scope_name} jami ro'yxatdan o'tganlar: <b>{total_users}</b> ta\n"
         f"🔹 Bugun qo'shilganlar: <b>{today_users}</b> ta\n"
     )
     await message.answer(
@@ -419,7 +427,13 @@ async def execute_broadcast(
     if call.message:
         await call.message.edit_text("⏳ Reklama yuborilmoqda, iltimos kuting...")
 
-    users = await db.get_all_users()
+    from bot.config import BOT_TOKEN
+    is_main = (bot.token == BOT_TOKEN)
+    if is_main:
+        users = await db.get_all_users_global()
+    else:
+        users = await db.get_all_users(bot_token=bot.token)
+
     total = len(users)
     success = 0
     failed = 0
