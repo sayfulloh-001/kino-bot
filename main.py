@@ -12,6 +12,10 @@ from bot.database.database import Database
 from bot.middlewares.check_sub import CheckSubscriptionMiddleware
 from bot.handlers import start_router, admin_router, user_router, movie_router
 
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 # Configure logging
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
@@ -26,9 +30,36 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+class DummyServer(BaseHTTPRequestHandler):
+    """Simple HTTP server to respond to Render's port checks."""
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write(b"Bot is running successfully!")
+
+    def log_message(self, format, *args):
+        # Silence HTTP request logging to keep logs clean
+        return
+
+
+def run_dummy_server():
+    """Binds HTTP server to Render's dynamic PORT."""
+    port = int(os.getenv("PORT", 8000))
+    try:
+        server = HTTPServer(("0.0.0.0", port), DummyServer)
+        logger.info(f"Dummy port listener started successfully on port {port}")
+        server.serve_forever()
+    except Exception as e:
+        logger.error(f"Failed to start dummy port listener: {e}")
+
+
 async def main() -> None:
     """Entry point for Telegram Kino Bot."""
     logger.info("Initializing Telegram Kino Bot...")
+
+    # Start dummy port listener for Render Web Service compatibility
+    threading.Thread(target=run_dummy_server, daemon=True).start()
 
     if not BOT_TOKEN or BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
         logger.critical(
