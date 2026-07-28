@@ -32,9 +32,8 @@ export class FollowCamera {
 
         const targetPos = playerMesh.position;
 
-        // 1. Calculate base camera position
-        // Z coordinate lags slightly behind player for depth feeling
-        let targetCamX = targetPos.x * 0.7; // Dampen camera lateral movement slightly
+        // 1. Calculate base camera position (centered horizontally to prevent screen shaking)
+        let targetCamX = 0;
         let targetCamY = targetPos.y + this.offset.y;
         
         // If player is flying high with jetpack, pull camera back/down slightly for better view
@@ -71,9 +70,9 @@ export class FollowCamera {
         // Apply shake
         this.camera.position.add(this.currentShake);
 
-        // 5. Update lookAt vector
+        // 5. Update lookAt vector (looking straight down the center lane)
         const lookTarget = new THREE.Vector3(
-            targetPos.x * 0.5,
+            0,
             targetPos.y * 0.5 + this.lookAtOffset.y,
             targetPos.z + this.lookAtOffset.z
         );
