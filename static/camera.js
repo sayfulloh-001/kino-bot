@@ -32,16 +32,35 @@ export class FollowCamera {
 
         const targetPos = playerMesh.position;
 
+        // Dynamic adjustment for mobile screens (portrait aspect ratio)
+        const aspect = window.innerWidth / window.innerHeight;
+        let baseFov = 60;
+        let currentOffset = this.offset.clone();
+
+        if (aspect < 1) {
+            // Narrow vertical screens: pull camera back and lift it higher
+            // to ensure lanes and player mesh stay in frustum and are clearly visible.
+            baseFov = 65 + (1 - aspect) * 15; // aspect = 0.5 => fov = 72.5
+            
+            const zoomMultiplier = Math.min(1.8, 1.3 / aspect);
+            currentOffset.z *= zoomMultiplier; // Pull back
+            currentOffset.y *= (1.0 + (1 - aspect) * 0.4); // Lift higher
+            
+            // Safety bounds to prevent extreme camera offsets
+            currentOffset.z = Math.max(-12.0, currentOffset.z);
+            currentOffset.y = Math.min(7.5, currentOffset.y);
+        }
+
         // 1. Calculate base camera position (centered horizontally to prevent screen shaking)
         let targetCamX = 0;
-        let targetCamY = targetPos.y + this.offset.y;
+        let targetCamY = targetPos.y + currentOffset.y;
         
         // If player is flying high with jetpack, pull camera back/down slightly for better view
         if (targetPos.y > 4) {
-            targetCamY = targetPos.y + 3.0;
+            targetCamY = targetPos.y + 3.0 * (currentOffset.y / 4.5);
         }
 
-        let targetCamZ = targetPos.z + this.offset.z;
+        let targetCamZ = targetPos.z + currentOffset.z;
 
         // 2. Smooth damping (Lerp)
         this.camera.position.x = lerp(this.camera.position.x, targetCamX, delta * 8);
@@ -49,7 +68,6 @@ export class FollowCamera {
         this.camera.position.z = lerp(this.camera.position.z, targetCamZ, delta * 12);
 
         // 3. Handle FOV based on forward velocity
-        const baseFov = 60;
         const targetFov = baseFov + (speed - 18) * 0.3; // Speed dependent FOV
         this.camera.fov = lerp(this.camera.fov, targetFov, delta * 2);
         this.camera.updateProjectionMatrix();

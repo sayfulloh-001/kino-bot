@@ -48,11 +48,10 @@ export class Player {
         this.wheels = [];
 
         // Setup base materials with high-quality physical properties
-        const steelGunMat = new THREE.MeshPhysicalMaterial({ 
+        const steelGunMat = new THREE.MeshStandardMaterial({ 
             color: 0x1e293b, 
             roughness: 0.4, 
-            metalness: 0.8,
-            clearcoat: 0.5
+            metalness: 0.8
         });
 
         if (this.activeSkin === 'car') {
@@ -70,11 +69,10 @@ export class Player {
         else if (this.activeSkin === 'pubg_soldier') bodyColor = 0x1f2937; // Tactical dark grey
         else if (this.activeSkin === 'gojo') bodyColor = 0x111827; // Gojo dark uniform
 
-        const bodyMat = new THREE.MeshPhysicalMaterial({ 
+        const bodyMat = new THREE.MeshStandardMaterial({ 
             color: bodyColor, 
             roughness: 0.7,
-            metalness: 0.1,
-            clearcoat: 0.2
+            metalness: 0.1
         });
         const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
         bodyMesh.position.y = 0.95;
@@ -98,7 +96,7 @@ export class Player {
             bodyMesh.position.y = 0.5; // Offset anchor
         }
 
-        const headMat = new THREE.MeshPhysicalMaterial({ color: headColor, roughness: 0.6 });
+        const headMat = new THREE.MeshStandardMaterial({ color: headColor, roughness: 0.6 });
         const headMesh = new THREE.Mesh(headGeo, headMat);
         headMesh.position.y = this.activeSkin === 'krosh' ? 0.35 : 0.525;
         headMesh.castShadow = true;
@@ -108,7 +106,7 @@ export class Player {
         // High detail elements for each skin
         if (this.activeSkin === 'krosh') {
             // Krosh rabbit ears
-            const earMat = new THREE.MeshPhysicalMaterial({ color: 0x0ea5e9, roughness: 0.7 });
+            const earMat = new THREE.MeshStandardMaterial({ color: 0x0ea5e9, roughness: 0.7 });
             const innerEarMat = new THREE.MeshStandardMaterial({ color: 0xfda4af }); // Pink inner ears
             
             // Left Ear
@@ -187,7 +185,7 @@ export class Player {
 
         if (this.activeSkin === 'gojo') {
             // Gojo spiky white hair with realistic standard material
-            const hairMat = new THREE.MeshPhysicalMaterial({ color: 0xf8fafc, roughness: 0.5, clearcoat: 0.3 });
+            const hairMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.5 });
             const hairBase = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.1, 0.36), hairMat);
             hairBase.position.y = 0.15;
             headMesh.add(hairBase);
@@ -219,12 +217,12 @@ export class Player {
             bodyMesh.add(collar);
         } else if (this.activeSkin === 'pubg_soldier') {
             // PUBG level 3 military helmet
-            const helmetMat = new THREE.MeshPhysicalMaterial({ color: 0x334155, roughness: 0.5, metalness: 0.6 });
+            const helmetMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5, metalness: 0.6 });
             const helmet = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.32, 0.38), helmetMat);
             helmet.position.y = 0.06;
             
             // Glossy black visor window
-            const visorMat = new THREE.MeshPhysicalMaterial({ color: 0x111827, roughness: 0.1, metalness: 0.9 });
+            const visorMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.1, metalness: 0.9 });
             const visor = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.08, 0.04), visorMat);
             visor.position.set(0, 0.04, 0.18);
             helmet.add(visor);
@@ -257,7 +255,7 @@ export class Player {
             headMesh.add(earL, earR);
 
             // Tigress yellow/gold vest
-            const vestMat = new THREE.MeshPhysicalMaterial({ color: 0xf59e0b, roughness: 0.5, metalness: 0.1 });
+            const vestMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.5, metalness: 0.1 });
             const vest = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.4, 0.37), vestMat);
             vest.position.y = 0.1;
             bodyMesh.add(vest);
@@ -392,23 +390,20 @@ export class Player {
         const windshieldColor = 0x22d3ee; // Glossy cyan glass
         const wheelColor = 0x0f172a; // Dark black rubber
 
-        const carMat = new THREE.MeshPhysicalMaterial({ 
+        const carMat = new THREE.MeshStandardMaterial({ 
             color: carColor, 
             roughness: 0.15, 
-            metalness: 0.9, 
-            clearcoat: 1.0,
-            clearcoatRoughness: 0.1
+            metalness: 0.9
         });
-        const glassMat = new THREE.MeshPhysicalMaterial({ 
+        const glassMat = new THREE.MeshStandardMaterial({ 
             color: windshieldColor, 
             roughness: 0.05,
             metalness: 0.1,
             transparent: true, 
-            opacity: 0.65,
-            clearcoat: 1.0
+            opacity: 0.65
         });
         const wheelMat = new THREE.MeshStandardMaterial({ color: wheelColor, roughness: 0.7 });
-        const rimMat = new THREE.MeshPhysicalMaterial({ color: 0x94a3b8, roughness: 0.2, metalness: 0.9 });
+        const rimMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.2, metalness: 0.9 });
 
         // 1. Core Car Body (mapped to body for animations)
         const bodyMesh = new THREE.Group();
@@ -429,7 +424,7 @@ export class Player {
         bodyMesh.add(cabin);
 
         // Rear Spoiler wing
-        const spoilerMat = new THREE.MeshPhysicalMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.8 });
+        const spoilerMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.8 });
         const spoiler = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.04, 0.16), spoilerMat);
         spoiler.position.set(0, 0.38, -0.62);
         spoiler.castShadow = true;

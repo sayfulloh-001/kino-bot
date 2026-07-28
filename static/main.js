@@ -126,6 +126,7 @@ class GameManager {
             this.dirLight.shadow.camera.bottom = -d;
         }
         this.scene.add(this.dirLight);
+        this.scene.add(this.dirLight.target);
 
         // Decorative Cyan/Magenta street light highlights
         this.blueGlow = new THREE.PointLight(0x00ffff, 1.5, 30);
@@ -182,15 +183,15 @@ class GameManager {
         let touchStartY = 0;
         
         window.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
+            touchStartX = e.changedTouches[0].clientX;
+            touchStartY = e.changedTouches[0].clientY;
         }, { passive: true });
 
         window.addEventListener('touchend', (e) => {
             if (!this.isRunning || this.isPaused) return;
 
-            const diffX = e.changedTouches[0].screenX - touchStartX;
-            const diffY = e.changedTouches[0].screenY - touchStartY;
+            const diffX = e.changedTouches[0].clientX - touchStartX;
+            const diffY = e.changedTouches[0].clientY - touchStartY;
 
             const threshold = 30; // Minimum pixel drag to consider swipe
 
@@ -211,8 +212,8 @@ class GameManager {
             }
         }, { passive: true });
 
-        // Weapon firing click / tap listener on canvas
-        window.addEventListener('mousedown', (e) => {
+        // Weapon firing click / tap listener on canvas using pointerdown for faster responsiveness
+        window.addEventListener('pointerdown', (e) => {
             if (!this.isRunning || this.isPaused) return;
             // Prevent weapon firing when clicking on UI buttons
             if (e.target.closest('#ui-container')) return;
@@ -595,7 +596,11 @@ class GameManager {
             followCamera.update(this.player.mesh, this.currentSpeed, delta);
             
             // Light follow player to avoid shadow dropouts
+            this.dirLight.position.x = this.player.mesh.position.x + 10;
+            this.dirLight.position.y = this.player.mesh.position.y + 20;
             this.dirLight.position.z = this.player.mesh.position.z + 15;
+            this.dirLight.target.position.copy(this.player.mesh.position);
+            
             this.blueGlow.position.z = this.player.mesh.position.z + 20;
             this.pinkGlow.position.z = this.player.mesh.position.z + 40;
 
