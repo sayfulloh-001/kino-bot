@@ -1,6 +1,6 @@
 /**
  * 3D Minecraft+PUBG Stylized Player Voxel Mesh & Controller.
- * Supports skins: Classic (Steve), Krosh (Kikoriki), Tigress (Kung Fu Panda), PUBG Soldier, Gojo Satoru, Sports Car.
+ * Upgraded with realistic high-detail textures, materials, and correct screen-space lane switching.
  */
 import { GAME_SETTINGS } from './settings.js';
 import { lerp } from './utils.js';
@@ -38,7 +38,7 @@ export class Player {
     }
 
     /**
-     * Build the voxel character model based on the active skin selection.
+     * Build the voxel character model with premium materials, shaders and high-detail meshes.
      */
     createCharacter() {
         // Clear previous meshes
@@ -47,9 +47,14 @@ export class Player {
         }
         this.wheels = [];
 
-        // Materials setup
-        const gunMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5, metalness: 0.5 });
-        
+        // Setup base materials with high-quality physical properties
+        const steelGunMat = new THREE.MeshPhysicalMaterial({ 
+            color: 0x1e293b, 
+            roughness: 0.4, 
+            metalness: 0.8,
+            clearcoat: 0.5
+        });
+
         if (this.activeSkin === 'car') {
             this.buildCarSkin();
             return;
@@ -65,7 +70,12 @@ export class Player {
         else if (this.activeSkin === 'pubg_soldier') bodyColor = 0x1f2937; // Tactical dark grey
         else if (this.activeSkin === 'gojo') bodyColor = 0x111827; // Gojo dark uniform
 
-        const bodyMat = new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.8 });
+        const bodyMat = new THREE.MeshPhysicalMaterial({ 
+            color: bodyColor, 
+            roughness: 0.7,
+            metalness: 0.1,
+            clearcoat: 0.2
+        });
         const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
         bodyMesh.position.y = 0.95;
         bodyMesh.castShadow = true;
@@ -81,54 +91,62 @@ export class Player {
         else if (this.activeSkin === 'gojo') headColor = 0xfecdd3;
 
         let headGeo = new THREE.BoxGeometry(0.35, 0.35, 0.35);
-        // Krosh is a single round ball, so head is merged or slightly smaller to serve as anchor
         if (this.activeSkin === 'krosh') {
+            // Krosh is a single round sphere made of overlapping voxel boxes for smoother look
             headGeo = new THREE.BoxGeometry(0.55, 0.55, 0.52);
             bodyMesh.scale.set(0.01, 0.01, 0.01); // Hide torso block
             bodyMesh.position.y = 0.5; // Offset anchor
         }
 
-        const headMat = new THREE.MeshStandardMaterial({ color: headColor, roughness: 0.8 });
+        const headMat = new THREE.MeshPhysicalMaterial({ color: headColor, roughness: 0.6 });
         const headMesh = new THREE.Mesh(headGeo, headMat);
-        headMesh.position.y = this.activeSkin === 'krosh' ? 0.35 : 0.525; // Krosh is lower
+        headMesh.position.y = this.activeSkin === 'krosh' ? 0.35 : 0.525;
         headMesh.castShadow = true;
         bodyMesh.add(headMesh);
         this.parts.head = headMesh;
 
-        // Specific details for Gojo, Krosh, Tigress, PUBG Soldier
+        // High detail elements for each skin
         if (this.activeSkin === 'krosh') {
             // Krosh rabbit ears
-            const earGeo = new THREE.BoxGeometry(0.12, 0.5, 0.12);
-            const earMat = new THREE.MeshStandardMaterial({ color: 0x0ea5e9, roughness: 0.8 });
+            const earMat = new THREE.MeshPhysicalMaterial({ color: 0x0ea5e9, roughness: 0.7 });
+            const innerEarMat = new THREE.MeshStandardMaterial({ color: 0xfda4af }); // Pink inner ears
             
-            const earL = new THREE.Mesh(earGeo, earMat);
-            earL.position.set(-0.15, 0.45, 0);
-            earL.rotation.z = 0.1;
-            earL.castShadow = true;
+            // Left Ear
+            const earLGroup = new THREE.Group();
+            earLGroup.position.set(-0.15, 0.3, 0);
+            earLGroup.rotation.z = 0.15;
             
-            const earR = new THREE.Mesh(earGeo, earMat);
-            earR.position.set(0.15, 0.45, 0);
-            earR.rotation.z = -0.1;
-            earR.castShadow = true;
+            const earLMesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.45, 0.12), earMat);
+            earLMesh.castShadow = true;
+            const innerEarL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.35, 0.02), innerEarMat);
+            innerEarL.position.set(0, 0.02, 0.06);
+            earLGroup.add(earLMesh, innerEarL);
+            headMesh.add(earLGroup);
 
-            headMesh.add(earL, earR);
+            // Right Ear
+            const earRGroup = new THREE.Group();
+            earRGroup.position.set(0.15, 0.3, 0);
+            earRGroup.rotation.z = -0.15;
+            
+            const earRMesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.45, 0.12), earMat);
+            earRMesh.castShadow = true;
+            const innerEarR = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.35, 0.02), innerEarMat);
+            innerEarR.position.set(0, 0.02, 0.06);
+            earRGroup.add(earRMesh, innerEarR);
+            headMesh.add(earRGroup);
 
             // Krosh red nose
-            const noseGeo = new THREE.BoxGeometry(0.08, 0.08, 0.08);
-            const noseMat = new THREE.MeshStandardMaterial({ color: 0xef4444 });
-            const nose = new THREE.Mesh(noseGeo, noseMat);
-            nose.position.set(0, 0, 0.28);
+            const nose = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, 0.09), new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.3 }));
+            nose.position.set(0, -0.02, 0.28);
             headMesh.add(nose);
 
             // Krosh bunny teeth
-            const teethGeo = new THREE.BoxGeometry(0.08, 0.06, 0.02);
-            const teethMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            const teeth = new THREE.Mesh(teethGeo, teethMat);
-            teeth.position.set(0, -0.09, 0.28);
+            const teeth = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.02), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+            teeth.position.set(0, -0.12, 0.28);
             headMesh.add(teeth);
 
-            // Eyes
-            const eyeGeo = new THREE.BoxGeometry(0.1, 0.14, 0.02);
+            // Krosh detailed eyes
+            const eyeGeo = new THREE.BoxGeometry(0.11, 0.15, 0.02);
             const pupilGeo = new THREE.BoxGeometry(0.04, 0.06, 0.01);
             const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
             const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
@@ -168,59 +186,78 @@ export class Player {
         }
 
         if (this.activeSkin === 'gojo') {
-            // Gojo spiky white hair
-            const hairMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.9 });
+            // Gojo spiky white hair with realistic standard material
+            const hairMat = new THREE.MeshPhysicalMaterial({ color: 0xf8fafc, roughness: 0.5, clearcoat: 0.3 });
             const hairBase = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.1, 0.36), hairMat);
             hairBase.position.y = 0.15;
             headMesh.add(hairBase);
 
             // Add spikes (small boxes rotated)
-            for (let i = 0; i < 6; i++) {
-                const spike = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.15, 0.08), hairMat);
-                spike.position.set(
-                    (Math.random() - 0.5) * 0.3,
-                    0.2,
-                    (Math.random() - 0.5) * 0.3
-                );
-                spike.rotation.set(
-                    (Math.random() - 0.5) * 0.5,
-                    (Math.random() - 0.5) * 0.5,
-                    (Math.random() - 0.5) * 0.5
-                );
+            const spikeGeo = new THREE.BoxGeometry(0.08, 0.16, 0.08);
+            const spikeCoords = [
+                [-0.12, 0.18, 0.1], [0.12, 0.18, 0.1], 
+                [-0.12, 0.18, -0.1], [0.12, 0.18, -0.1],
+                [0, 0.22, 0], [0, 0.18, 0.15], [-0.15, 0.12, 0]
+            ];
+            for (const coord of spikeCoords) {
+                const spike = new THREE.Mesh(spikeGeo, hairMat);
+                spike.position.set(coord[0], coord[1], coord[2]);
+                spike.rotation.set((Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4);
                 headMesh.add(spike);
             }
 
-            // Gojo Black sunglasses/blindfold
+            // Gojo Black blindfold
             const blindfoldMat = new THREE.MeshBasicMaterial({ color: 0x111827 });
-            const blindfold = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.08, 0.06), blindfoldMat);
-            blindfold.position.set(0, 0.04, 0.16);
+            const blindfold = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.08, 0.36), blindfoldMat);
+            blindfold.position.set(0, 0.04, 0.01);
             headMesh.add(blindfold);
+
+            // Uniform high collar
+            const collarMat = new THREE.MeshStandardMaterial({ color: 0x111827 });
+            const collar = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.15, 0.28), collarMat);
+            collar.position.y = 0.45;
+            bodyMesh.add(collar);
         } else if (this.activeSkin === 'pubg_soldier') {
             // PUBG level 3 military helmet
-            const helmetMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.7, metalness: 0.2 });
+            const helmetMat = new THREE.MeshPhysicalMaterial({ color: 0x334155, roughness: 0.5, metalness: 0.6 });
             const helmet = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.32, 0.38), helmetMat);
             helmet.position.y = 0.06;
             
-            // Dark visor window
-            const visorMat = new THREE.MeshBasicMaterial({ color: 0x111827 });
+            // Glossy black visor window
+            const visorMat = new THREE.MeshPhysicalMaterial({ color: 0x111827, roughness: 0.1, metalness: 0.9 });
             const visor = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.08, 0.04), visorMat);
             visor.position.set(0, 0.04, 0.18);
             helmet.add(visor);
             headMesh.add(helmet);
+
+            // Level 3 Backpack (attached to back of body)
+            const packMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+            const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.5, 0.2), packMat);
+            backpack.position.set(0, 0, -0.25);
+            bodyMesh.add(backpack);
         } else if (this.activeSkin === 'tigress') {
-            // Tiger ears
+            // Tiger ears with pink details
             const earMat = new THREE.MeshStandardMaterial({ color: 0xea580c });
-            const earL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), earMat);
+            const innerEarMat = new THREE.MeshBasicMaterial({ color: 0xfda4af });
+            
+            const earL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.08), earMat);
             earL.position.set(-0.14, 0.18, 0);
             earL.rotation.z = 0.3;
+            const innerL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.02), innerEarMat);
+            innerL.position.set(0, 0, 0.04);
+            earL.add(innerL);
             
-            const earR = earL.clone();
-            earR.position.x = 0.14;
+            const earR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.08), earMat);
+            earR.position.set(0.14, 0.18, 0);
             earR.rotation.z = -0.3;
+            const innerR = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.02), innerEarMat);
+            innerR.position.set(0, 0, 0.04);
+            earR.add(innerR);
+            
             headMesh.add(earL, earR);
 
-            // Tigress yellow outfit lines
-            const vestMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b });
+            // Tigress yellow/gold vest
+            const vestMat = new THREE.MeshPhysicalMaterial({ color: 0xf59e0b, roughness: 0.5, metalness: 0.1 });
             const vest = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.4, 0.37), vestMat);
             vest.position.y = 0.1;
             bodyMesh.add(vest);
@@ -238,7 +275,7 @@ export class Player {
         let armGeo = new THREE.BoxGeometry(0.18, 0.6, 0.18);
         
         let pantsColor = 0x7c2d12; // Steve brown pants
-        let skinCuffColor = skinColor;
+        let skinCuffColor = headColor;
         let armColor = bodyColor;
         
         if (this.activeSkin === 'krosh') {
@@ -323,13 +360,13 @@ export class Player {
         this.gunGroup.position.set(0, -0.3, 0.15);
         this.gunGroup.rotation.x = Math.PI / 2; // Point forward
 
-        const gunBody = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.12, 0.5), gunMat);
-        const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.4), gunMat);
+        const gunBody = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.12, 0.5), steelGunMat);
+        const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.4), steelGunMat);
         barrel.position.set(0, 0.04, -0.4);
-        const mag = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.18, 0.1), gunMat);
+        const mag = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.18, 0.1), steelGunMat);
         mag.rotation.x = 0.2;
         mag.position.set(0, -0.12, -0.05);
-        const stock = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.1, 0.2), gunMat);
+        const stock = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.1, 0.2), steelGunMat);
         stock.position.set(0, -0.02, 0.3);
 
         this.gunGroup.add(gunBody, barrel, mag, stock);
@@ -348,15 +385,30 @@ export class Player {
 
     /**
      * Special builder for Sports Car skin.
+     * Rendered with metallic textures and glowing lights.
      */
     buildCarSkin() {
-        const carColor = 0x475569; // Rimac-style sleek grey
-        const windshieldColor = 0x22d3ee; // Neon cyan glass
-        const wheelColor = 0x111827; // Dark grey wheels
+        const carColor = 0x334155; // Metallic slate blue
+        const windshieldColor = 0x22d3ee; // Glossy cyan glass
+        const wheelColor = 0x0f172a; // Dark black rubber
 
-        const carMat = new THREE.MeshStandardMaterial({ color: carColor, roughness: 0.3, metalness: 0.8 });
-        const glassMat = new THREE.MeshStandardMaterial({ color: windshieldColor, transparent: true, opacity: 0.7 });
-        const wheelMat = new THREE.MeshStandardMaterial({ color: wheelColor, roughness: 0.8 });
+        const carMat = new THREE.MeshPhysicalMaterial({ 
+            color: carColor, 
+            roughness: 0.15, 
+            metalness: 0.9, 
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.1
+        });
+        const glassMat = new THREE.MeshPhysicalMaterial({ 
+            color: windshieldColor, 
+            roughness: 0.05,
+            metalness: 0.1,
+            transparent: true, 
+            opacity: 0.65,
+            clearcoat: 1.0
+        });
+        const wheelMat = new THREE.MeshStandardMaterial({ color: wheelColor, roughness: 0.7 });
+        const rimMat = new THREE.MeshPhysicalMaterial({ color: 0x94a3b8, roughness: 0.2, metalness: 0.9 });
 
         // 1. Core Car Body (mapped to body for animations)
         const bodyMesh = new THREE.Group();
@@ -364,28 +416,46 @@ export class Player {
         this.mesh.add(bodyMesh);
         this.parts.body = bodyMesh;
 
-        // Main shell
-        const shell = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.3, 1.3), carMat);
+        // Main chassis
+        const shell = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.28, 1.35), carMat);
         shell.position.y = 0.15;
         shell.castShadow = true;
         bodyMesh.add(shell);
 
-        // Windshield cabin
-        const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.2, 0.6), glassMat);
+        // Cabin cockpit
+        const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.22, 0.65), glassMat);
         cabin.position.set(0, 0.4, 0.05);
+        cabin.castShadow = true;
         bodyMesh.add(cabin);
 
-        // Spoiler
-        const spoilerMat = new THREE.MeshStandardMaterial({ color: 0x1f2937 });
-        const spoiler = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.05, 0.15), spoilerMat);
-        spoiler.position.set(0, 0.35, -0.6);
+        // Rear Spoiler wing
+        const spoilerMat = new THREE.MeshPhysicalMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.8 });
+        const spoiler = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.04, 0.16), spoilerMat);
+        spoiler.position.set(0, 0.38, -0.62);
+        spoiler.castShadow = true;
         bodyMesh.add(spoiler);
 
-        const spoilerLegL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.12, 0.04), spoilerMat);
-        spoilerLegL.position.set(-0.3, 0.25, -0.6);
+        const spoilerLegL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.16, 0.04), spoilerMat);
+        spoilerLegL.position.set(-0.32, 0.27, -0.62);
         const spoilerLegR = spoilerLegL.clone();
-        spoilerLegR.position.x = 0.3;
+        spoilerLegR.position.x = 0.32;
         bodyMesh.add(spoilerLegL, spoilerLegR);
+
+        // Neon glowing headlights (yellow emissive)
+        const headlightMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, emissive: 0xfef08a, emissiveIntensity: 1.5 });
+        const headlightL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.02), headlightMat);
+        headlightL.position.set(-0.28, 0.15, 0.68);
+        const headlightR = headlightL.clone();
+        headlightR.position.x = 0.28;
+        bodyMesh.add(headlightL, headlightR);
+
+        // Neon glowing taillights (red emissive)
+        const taillightMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xef4444, emissiveIntensity: 1.5 });
+        const taillightL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 0.02), taillightMat);
+        taillightL.position.set(-0.28, 0.18, -0.68);
+        const taillightR = taillightL.clone();
+        taillightR.position.x = 0.28;
+        bodyMesh.add(taillightL, taillightR);
 
         // Voxel weapon on top (so car can still shoot!)
         const gunGroup = new THREE.Group();
@@ -399,20 +469,29 @@ export class Player {
         bodyMesh.add(gunGroup);
         this.gunGroup = gunGroup; // reference for muzzle flash position
 
-        // 2. Wheels
+        // 2. Wheels with metallic rims
         const wheelGeo = new THREE.BoxGeometry(0.18, 0.28, 0.28);
+        const rimGeo = new THREE.BoxGeometry(0.2, 0.14, 0.14);
         const wheelsCoords = [
-            [-0.4, 0.1, 0.45],  // Front Left
-            [0.4, 0.1, 0.45],   // Front Right
-            [-0.4, 0.1, -0.45], // Rear Left
-            [0.4, 0.1, -0.45]   // Rear Right
+            [-0.42, 0.1, 0.45],  // Front Left
+            [0.42, 0.1, 0.45],   // Front Right
+            [-0.42, 0.1, -0.45], // Rear Left
+            [0.42, 0.1, -0.45]   // Rear Right
         ];
 
         for (const coord of wheelsCoords) {
-            const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-            wheel.position.set(coord[0], coord[1], coord[2]);
-            bodyMesh.add(wheel);
-            this.wheels.push(wheel);
+            const wheelGroup = new THREE.Group();
+            wheelGroup.position.set(coord[0], coord[1], coord[2]);
+            
+            const tire = new THREE.Mesh(wheelGeo, wheelMat);
+            tire.castShadow = true;
+            
+            const rim = new THREE.Mesh(rimGeo, rimMat);
+            rim.rotation.x = Math.PI / 2;
+            
+            wheelGroup.add(tire, rim);
+            bodyMesh.add(wheelGroup);
+            this.wheels.push(wheelGroup);
         }
 
         // Stub/Empty anchors to avoid JS crashes in animation script
@@ -436,20 +515,21 @@ export class Player {
     }
 
     /**
-     * Controls.
+     * Controls - Corrected globally for screen-space matching.
+     * moveLeft swaps from decreasing currentLane to increasing it, aligning with the camera.
      */
     moveLeft() {
         if (this.state === 'hit') return;
-        if (this.currentLane > 0) {
-            this.currentLane--;
+        if (this.currentLane < GAME_SETTINGS.LANE_COUNT - 1) {
+            this.currentLane++; // Swap logic to correct flipped layout!
             audioManager.playSFX('footstep');
         }
     }
 
     moveRight() {
         if (this.state === 'hit') return;
-        if (this.currentLane < GAME_SETTINGS.LANE_COUNT - 1) {
-            this.currentLane++;
+        if (this.currentLane > 0) {
+            this.currentLane--; // Swap logic to correct flipped layout!
             audioManager.playSFX('footstep');
         }
     }
