@@ -4,6 +4,7 @@
 import { saveManager } from './save.js';
 import { audioManager } from './audio.js';
 import { formatScore } from './utils.js';
+import { TicTacToe } from './tictactoe.js';
 
 export class UIManager {
     /**
@@ -24,8 +25,13 @@ export class UIManager {
             missions: document.getElementById('missions-panel'),
             settings: document.getElementById('settings-panel'),
             dailyReward: document.getElementById('daily-reward-modal'),
-            profile: document.getElementById('profile-modal')
+            profile: document.getElementById('profile-modal'),
+            gamesHub: document.getElementById('games-menu-panel'),
+            xoGame: document.getElementById('tic-tac-toe-panel')
         };
+        
+        // Initialize Tic-Tac-Toe subgame
+        this.xo = new TicTacToe(this);
         
         this.initButtons();
         this.initSettingsValues();
@@ -41,7 +47,23 @@ export class UIManager {
         // --- Main Menu ---
         document.getElementById('play-btn').onclick = () => {
             audioManager.playSFX('powerup');
+            this.showPanel('gamesHub');
+        };
+
+        // --- Games Hub & XO Button Bindings ---
+        document.getElementById('close-games-btn').onclick = () => {
+            this.closeAllPanels();
+        };
+        document.getElementById('play-runner-btn').onclick = () => {
+            this.closeAllPanels();
             this.gm.startGame();
+        };
+        document.getElementById('play-xo-btn').onclick = () => {
+            this.showPanel('xoGame');
+            this.xo.restartGame(); // Reset board state when entering XO game
+        };
+        document.getElementById('exit-xo-btn').onclick = () => {
+            this.showPanel('gamesHub');
         };
         document.getElementById('shop-btn').onclick = () => this.showPanel('shop');
         document.getElementById('leaderboard-btn').onclick = () => this.showPanel('leaderboard');
@@ -174,7 +196,7 @@ export class UIManager {
         audioManager.playSFX('footstep');
         
         // Hide panel screens
-        const panels = ['shop', 'leaderboard', 'missions', 'settings', 'dailyReward'];
+        const panels = ['shop', 'leaderboard', 'missions', 'settings', 'dailyReward', 'gamesHub', 'xoGame'];
         panels.forEach(p => this.screens[p].classList.remove('active'));
         
         if (this.screens[panelName]) {
@@ -188,7 +210,7 @@ export class UIManager {
 
     closeAllPanels() {
         audioManager.playSFX('footstep');
-        const panels = ['shop', 'leaderboard', 'missions', 'settings', 'dailyReward'];
+        const panels = ['shop', 'leaderboard', 'missions', 'settings', 'dailyReward', 'gamesHub', 'xoGame'];
         panels.forEach(p => this.screens[p].classList.remove('active'));
     }
 

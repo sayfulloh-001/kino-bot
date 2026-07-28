@@ -160,6 +160,100 @@
             </div>
         </div>
 
+        <!-- ================= GAMES PORTAL (SELECTION MENU) ================= -->
+        <div id="games-menu-panel" class="screen-overlay modal-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-gamepad"></i> O'YINLAR PORTALI</h2>
+                <button id="close-games-btn" class="close-panel-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="panel-body game-selection-body">
+                <div class="game-cards-container">
+                    
+                    <!-- Card 1: Mine PUBG Runner -->
+                    <div class="game-card">
+                        <div class="game-card-icon runner-icon"><i class="fa-solid fa-cube"></i></div>
+                        <div class="game-card-info">
+                            <h3>Mine PUBG Run 3D</h3>
+                            <p>Voxel olamida yuguring, to'siqlarni o'qqa tuting va rekordlarni yangilang!</p>
+                            <span class="game-badge runner">3D Sarguzasht</span>
+                        </div>
+                        <button id="play-runner-btn" class="game-play-action-btn">O'YNASH <i class="fa-solid fa-play"></i></button>
+                    </div>
+
+                    <!-- Card 2: Tic-Tac-Toe (X/O) -->
+                    <div class="game-card">
+                        <div class="game-card-icon xo-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+                        <div class="game-card-info">
+                            <h3>X/O (Tic-Tac-Toe)</h3>
+                            <p>Aqlli sun'iy intellekt (AI) yoki do'stingiz bilan kuch sinashing!</p>
+                            <span class="game-badge tictactoe">YANGI</span>
+                        </div>
+                        <button id="play-xo-btn" class="game-play-action-btn">O'YNASH <i class="fa-solid fa-play"></i></button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TIC-TAC-TOE (X/O) GAME PANEL ================= -->
+        <div id="tic-tac-toe-panel" class="screen-overlay modal-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-circle-nodes"></i> XO O'YINI</h2>
+                <button id="exit-xo-btn" class="close-panel-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="panel-body xo-panel-body">
+                
+                <!-- Game Configuration Mode Toggle -->
+                <div class="xo-mode-select">
+                    <button id="xo-mode-ai" class="xo-mode-btn active">KOMPYUTER (AI)</button>
+                    <button id="xo-mode-friend" class="xo-mode-btn">DO'ST BILAN</button>
+                </div>
+
+                <!-- Tic Tac Toe Scoreboard -->
+                <div class="xo-scoreboard">
+                    <div class="xo-score-card card-x">
+                        <span class="xo-player-name">O'yinchi (X)</span>
+                        <span id="xo-score-x" class="xo-score-value">0</span>
+                    </div>
+                    <div class="xo-score-card card-draws">
+                        <span class="xo-player-name">Durang</span>
+                        <span id="xo-score-draws" class="xo-score-value">0</span>
+                    </div>
+                    <div class="xo-score-card card-o">
+                        <span id="xo-o-label" class="xo-player-name">Kompyuter (O)</span>
+                        <span id="xo-score-o" class="xo-score-value">0</span>
+                    </div>
+                </div>
+
+                <!-- Status indicator -->
+                <div class="xo-status-indicator">
+                    <span id="xo-status-text">O'yinni boshlang</span>
+                </div>
+
+                <!-- 3x3 Tic Tac Toe Grid -->
+                <div class="xo-grid-wrapper">
+                    <div class="xo-grid">
+                        <div class="xo-cell" data-index="0"></div>
+                        <div class="xo-cell" data-index="1"></div>
+                        <div class="xo-cell" data-index="2"></div>
+                        <div class="xo-cell" data-index="3"></div>
+                        <div class="xo-cell" data-index="4"></div>
+                        <div class="xo-cell" data-index="5"></div>
+                        <div class="xo-cell" data-index="6"></div>
+                        <div class="xo-cell" data-index="7"></div>
+                        <div class="xo-cell" data-index="8"></div>
+                    </div>
+                </div>
+
+                <!-- Game Actions -->
+                <div class="xo-actions">
+                    <button id="xo-restart-btn" class="action-btn"><i class="fa-solid fa-rotate-left"></i> Yangi O'yin</button>
+                    <button id="xo-reset-scores-btn" class="action-btn secondary-btn"><i class="fa-solid fa-trash-can"></i> Nol qilish</button>
+                </div>
+
+            </div>
+        </div>
+
         <!-- ================= SHOP PANEL ================= -->
         <div id="shop-panel" class="screen-overlay modal-panel">
             <div class="panel-header">
