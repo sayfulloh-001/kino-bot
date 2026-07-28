@@ -248,8 +248,15 @@ async def main() -> None:
     dp = Dispatcher()
     dp.include_router(router)
 
-    # Set the menu button for the Web App
+    # Reset the menu button for the Web App
     await set_menu_button(bot)
+
+    # Delete all bot commands from the "/" menu list
+    try:
+        await bot.delete_my_commands()
+        logger.info("Bot commands list deleted successfully.")
+    except Exception as e:
+        logger.error(f"Failed to delete bot commands: {e}")
 
     logger.info("Bot successfully started polling!")
     try:
