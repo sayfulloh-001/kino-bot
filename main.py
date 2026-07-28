@@ -119,23 +119,6 @@ def run_web_server():
         logger.error(f"Failed to start web server: {e}")
 
 # ==========================================
-# KEYBOARDS
-# ==========================================
-
-def get_main_keyboard():
-    keyboard_buttons = []
-    if WEB_APP_URL:
-        keyboard_buttons.append([
-            KeyboardButton(text="🎮 O'yinni boshlash", web_app=WebAppInfo(url=WEB_APP_URL))
-        ])
-    keyboard_buttons.append([KeyboardButton(text="ℹ️ O'yin haqida")])
-    
-    return ReplyKeyboardMarkup(
-        keyboard=keyboard_buttons,
-        resize_keyboard=True
-    )
-
-# ==========================================
 # GENERAL HANDLERS (USER)
 # ==========================================
 
@@ -156,21 +139,23 @@ async def start_handler(message: types.Message):
             ]
         )
         
+    # Send welcome text and force Telegram to close/remove any active bottom reply keyboards
     await message.answer(
         f"Salom, <b>{message.from_user.full_name}</b>! 👋\n\n"
         f"Mine PUBG Runner 3D o'yinimizga xush kelibsiz!\n\n"
         f"Boshlash uchun pastdagi tugmani bosing yoki chat menyusidagi Play tugmasidan foydalaning.\n\n"
         f"Savollar va takliflar uchun admin: @sayfulloh_ai",
-        reply_markup=inline_keyboard
+        reply_markup=types.ReplyKeyboardRemove()
     )
     
-    await message.answer(
-        "Quyidagi menyu orqali ham o'yinni boshlashingiz mumkin:",
-        reply_markup=get_main_keyboard()
-    )
+    if inline_keyboard:
+        await message.answer(
+            "O'yinni boshlash uchun o'ynash tugmasini bosing:",
+            reply_markup=inline_keyboard
+        )
 
-@router.message(F.text == "ℹ️ O'yin haqida")
-async def info_handler(message: types.Message):
+@router.message(Command("help"))
+async def help_handler(message: types.Message):
     await message.answer(
         "🎮 <b>Mine PUBG Runner 3D</b>\n\n"
         "Ushbu o'yin Minecraft va PUBG dunyolarining ajoyib uyg'unligidir. "
@@ -179,7 +164,33 @@ async def info_handler(message: types.Message):
         "<b>Boshqaruv:</b>\n"
         "• 📱 Mobil qurilmada: Chapga/O'ngga swipe qilish orqali harakatlaning. Sakrash uchun yuqoriga, yotish uchun pastga swipe qiling. Otish uchun ekranga bosing.\n"
         "• 💻 Kompyuterda: Yo'nalish tugmalari (chap/o'ng/tepa/pastki) yoki A/S/D/W orqali boshqaring. Otish uchun sichqonchani bosing.\n\n"
-        "Savollar bo'lsa, admin: @sayfulloh_ai ga yozishingiz mumkin. Omad! 🚀"
+        "Savollar bo'lsa, admin: @sayfulloh_ai ga yozishingiz mumkin. Omad! 🚀",
+        reply_markup=types.ReplyKeyboardRemove()
+    )
+
+@router.message()
+async def fallback_handler(message: types.Message):
+    # Auto close active keyboards for any arbitrary text message and provide the play button
+    inline_keyboard = None
+    if WEB_APP_URL:
+        inline_keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="🎮 O'yinni o'ynash (3D Runner)",
+                        web_app=WebAppInfo(url=WEB_APP_URL)
+                    )
+                ]
+            ]
+        )
+    await message.answer(
+        "O'yinni boshlash uchun pastdagi tugmani bosing:",
+        reply_markup=inline_keyboard
+    )
+    # Also send a dummy remove keyboard command to clean up if needed
+    await message.answer(
+        "Tugmalar yopildi.",
+        reply_markup=types.ReplyKeyboardRemove()
     )
 
 # ==========================================
