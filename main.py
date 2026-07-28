@@ -299,8 +299,9 @@ async def start_handler(message: types.Message):
         
     await message.answer(
         f"Salom, <b>{message.from_user.full_name}</b>! 👋\n\n"
-        f"Savol-javob (Quiz) botimiz va 3D Yugurish o'yinimizga xush kelibsiz!\n\n"
-        f"🎮 O'yinni o'ynash uchun pastdagi tugmani bosing, yoki bot menyusidan foydalanib bilimingizni sinab ko'ring.",
+        f"Mine PUBG Runner 3D o'yinimizga xush kelibsiz!\n\n"
+        f"Boshlash uchun pastdagi tugmani bosing yoki chat menyusidagi Play tugmasidan foydalaning.\n\n"
+        f"Savollar va takliflar uchun admin: @sayfulloh_ai",
         reply_markup=inline_keyboard
     )
     

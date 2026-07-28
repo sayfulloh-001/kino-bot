@@ -154,11 +154,11 @@ class GameManager {
             switch (e.key) {
                 case 'ArrowLeft':
                 case 'a':
-                    this.player.moveLeft();
+                    this.player.moveRight();
                     break;
                 case 'ArrowRight':
                 case 'd':
-                    this.player.moveRight();
+                    this.player.moveLeft();
                     break;
                 case 'ArrowUp':
                 case 'w':
@@ -196,9 +196,9 @@ class GameManager {
             if (Math.abs(diffX) > Math.abs(diffY)) {
                 // Horizontal Swipe
                 if (diffX > threshold) {
-                    this.player.moveRight();
-                } else if (diffX < -threshold) {
                     this.player.moveLeft();
+                } else if (diffX < -threshold) {
+                    this.player.moveRight();
                 }
             } else {
                 // Vertical Swipe
