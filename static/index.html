@@ -3,1025 +3,490 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MineRunner - Telegram Web App</title>
+    <title>Mine PUBG Runner 3D</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-    <style>
-        :root {
-            --bg-color: var(--tg-theme-bg-color, #0f172a);
-            --text-color: var(--tg-theme-text-color, #ffffff);
-            --button-color: var(--tg-theme-button-color, #5c8f24);
-            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: #000;
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        #game-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            max-width: 450px;
-            max-height: 900px;
-            aspect-ratio: 9/16;
-            background-color: #5c8f8f;
-            overflow: hidden;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
-            display: flex;
-            flex-direction: column;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        /* Screens overlays */
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.65);
-            z-index: 10;
-            padding: 30px;
-            text-align: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .pixel-font {
-            font-family: 'Press Start 2P', monospace;
-            line-height: 1.6;
-        }
-
-        h1.game-title {
-            font-size: 1.8rem;
-            color: #55ff55;
-            text-shadow: 4px 4px 0px #005500;
-            margin-bottom: 30px;
-            animation: bounce 1.5s infinite alternate;
-        }
-
-        @keyframes bounce {
-            from { transform: translateY(0); }
-            to { transform: translateY(-10px); }
-        }
-
-        /* Buttons styling */
-        .btn-mine {
-            background-color: #7f7f7f;
-            border: 4px solid #3f3f3f;
-            border-top-color: #c0c0c0;
-            border-left-color: #c0c0c0;
-            color: #ffffff;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 0.9rem;
-            padding: 16px 24px;
-            cursor: pointer;
-            width: 85%;
-            max-width: 300px;
-            text-shadow: 2px 2px 0px #3f3f3f;
-            margin: 10px 0;
-            outline: none;
-            box-shadow: 0 6px 0px #000;
-            transition: transform 0.1s ease;
-        }
-
-        .btn-mine:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0px #000;
-        }
-
-        .btn-green {
-            background-color: #5c8f24;
-            border-color: #2e4712;
-            border-top-color: #8cce37;
-            border-left-color: #8cce37;
-            text-shadow: 2px 2px 0px #2e4712;
-        }
-
-        /* UI Panel info */
-        .stats-panel {
-            background-color: rgba(30, 30, 30, 0.85);
-            border: 4px solid #5c5c5c;
-            padding: 15px;
-            border-radius: 4px;
-            width: 85%;
-            margin-bottom: 25px;
-            color: #ffaa00;
-        }
-
-        .stats-title {
-            font-size: 0.8rem;
-            margin-bottom: 10px;
-            color: #fff;
-        }
-
-        .stats-val {
-            font-size: 0.95rem;
-            margin-top: 5px;
-        }
-
-        /* Game Over Layout */
-        .dead-title {
-            color: #ff5555;
-            text-shadow: 4px 4px 0px #550000;
-            font-size: 1.6rem;
-            margin-bottom: 20px;
-        }
-
-        /* Touch Swipe Guide */
-        .guide-box {
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.85rem;
-            color: #fff;
-            margin-top: 25px;
-            background: rgba(255,255,255,0.1);
-            padding: 10px 15px;
-            border-radius: 8px;
-            line-height: 1.4;
-        }
-    </style>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="game-container">
-        <!-- Canvas for Rendering -->
-        <canvas id="gameCanvas"></canvas>
+    <!-- 3D Canvas Container -->
+    <div id="game-container"></div>
 
-        <!-- SCREEN 1: START MENU -->
-        <div id="menu-overlay" class="overlay active">
-            <h1 class="game-title pixel-font">MINE<br>RUNNER</h1>
-            
-            <div class="stats-panel pixel-font" id="high-score-panel">
-                <div class="stats-title">REKORD BALL</div>
-                <div class="stats-val" id="high-score-val">00000</div>
-            </div>
-
-            <button class="btn-mine btn-green" onclick="startGame()">
-                PLAY (BOSHLASH)
-            </button>
-
-            <div class="guide-box">
-                <b>Boshqaruv:</b><br>
-                ⬅️ ➡️ Yurish: Ekran chap/o'ng tomonini bosish yoki chap/o'ngga surish (Swipe)<br>
-                ⬆️ Sakrash: Tepaga surish (Swipe Up)<br>
-                ⬇️ Bukilish: Pastga surish (Swipe Down)
-            </div>
-        </div>
-
-        <!-- SCREEN 2: GAME OVER -->
-        <div id="gameover-overlay" class="overlay">
-            <h1 class="dead-title pixel-font">O'YIN TUGADI!</h1>
-            
-            <div class="stats-panel pixel-font" style="color: #fff;">
-                <div>BALL: <span id="final-score" style="color: #55ff55;">0</span></div>
-                <div style="margin-top: 10px;">ALMAZLAR: <span id="final-diamonds" style="color: #55ffff;">0</span></div>
-            </div>
-
-            <button class="btn-mine btn-green" onclick="restartGame()">
-                QAYTA BOSHLASH
-            </button>
-
-            <button class="btn-mine" onclick="backToMenu()">
-                ASOSIY MENYU
-            </button>
-        </div>
+    <!-- Center Crosshair for Shooting (Mine PUBG style) -->
+    <div id="crosshair-container">
+        <div class="crosshair-dot"></div>
+        <div class="crosshair-line horizontal"></div>
+        <div class="crosshair-line vertical"></div>
     </div>
 
-    <script>
-        // Init Telegram Web App
-        const webApp = window.Telegram?.WebApp;
-        if (webApp) {
-            webApp.ready();
-            webApp.expand();
-            if (webApp.setHeaderColor) {
-                webApp.setHeaderColor('secondary_bg_color');
-            }
-        }
-
-        function triggerHaptic(type) {
-            if (webApp && webApp.HapticFeedback) {
-                webApp.HapticFeedback.impactOccurred(type);
-            }
-        }
-
-        // Web Audio API Sound Synthesizer (Saves size, no external assets needed!)
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        let audioCtx = null;
-
-        function playSound(type) {
-            try {
-                if (!audioCtx) {
-                    audioCtx = new AudioCtx();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                const now = audioCtx.currentTime;
-
-                if (type === 'jump') {
-                    // Quick pitch sweep up
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(150, now);
-                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now);
-                    osc.stop(now + 0.15);
-                } else if (type === 'coin') {
-                    // Double high pitch chime (Minecraft diamond pick up sound style)
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(987.77, now); // B5
-                    osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
-                    gain.gain.setValueAtTime(0.12, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
-                } else if (type === 'crash') {
-                    // Low explosion "Oof" noise
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(120, now);
-                    osc.frequency.linearRampToValueAtTime(40, now + 0.35);
-                    
-                    // Add bandpass filter to simulate noise/thud
-                    const filter = audioCtx.createBiquadFilter();
-                    filter.type = 'bandpass';
-                    filter.frequency.value = 100;
-                    
-                    osc.disconnect(gain);
-                    osc.connect(filter);
-                    filter.connect(gain);
-                    
-                    gain.gain.setValueAtTime(0.3, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-                    osc.start(now);
-                    osc.stop(now + 0.35);
-                }
-            } catch (e) {
-                console.error("Audio failed to play: ", e);
-            }
-        }
-
-        // Canvas Setup
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        function resizeCanvas() {
-            const container = document.getElementById('game-container');
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
-            // Disable image smoothing for nice pixelated Minecraft look!
-            ctx.imageSmoothingEnabled = false;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        // Game Configuration
-        const LANES = [0, 1, 2]; // Left, Middle, Right
-        const LANE_WIDTH_PCT = 0.28; // Width of a lane on bottom
-        const HORIZON_Y_PCT = 0.45; // Horizon height
+    <!-- UI Overlay Wrapper -->
+    <div id="ui-container">
         
-        let highScore = parseInt(localStorage.getItem('minerunner_highscore') || '0');
-        document.getElementById('high-score-val').innerText = String(highScore).padStart(5, '0');
+        <!-- ================= LOADING SCREEN ================= -->
+        <div id="loading-screen" class="screen-overlay active">
+            <div class="glow-effect"></div>
+            <div class="loading-content">
+                <div class="app-logo"><i class="fa-solid fa-cube"></i></div>
+                <h1 class="game-title">MINE PUBG RUNNER</h1>
+                <p class="loading-status">Voxel dunyosini yuklamoqda...</p>
+                <div class="progress-bar-container">
+                    <div id="loading-progress" class="progress-bar"></div>
+                </div>
+            </div>
+        </div>
 
-        // Game Variables
-        let isPlaying = false;
-        let isDead = false;
-        
-        let score = 0;
-        let diamonds = 0;
-        let speed = 8; // Speed of objects moving forward
-        let timeElapsed = 0;
-        
-        let player = {
-            lane: 1, // 0, 1, 2
-            targetLane: 1,
-            x: 0, // Interpolated X
-            jumpY: 0, // Jump Y offset
-            jumpVelocity: 0,
-            isJumping: false,
-            duckTime: 0,
-            isDucking: false,
-            runFrame: 0,
-        };
+        <!-- ================= MAIN MENU ================= -->
+        <div id="main-menu" class="screen-overlay">
+            <div class="menu-header">
+                <div class="currency-indicator">
+                    <div class="currency-item coin-display">
+                        <i class="fa-solid fa-cube icon-gold"></i>
+                        <span id="menu-coin-count">0</span>
+                    </div>
+                    <div class="currency-item diamond-display">
+                        <i class="fa-solid fa-gem icon-diamond"></i>
+                        <span id="menu-diamond-count">0</span>
+                    </div>
+                </div>
+                <button id="profile-btn" class="icon-btn"><i class="fa-solid fa-user-ninja"></i></button>
+            </div>
 
-        let obstacles = [];
-        let collectibles = [];
-        let particles = [];
-        let clouds = [
-            { x: -50, y: 50, scale: 0.8, speed: 0.1 },
-            { x: 150, y: 70, scale: 1.2, speed: 0.15 },
-            { x: 350, y: 40, scale: 0.6, speed: 0.08 }
-        ];
-
-        // Touch Swipe Variables
-        let touchStartX = 0;
-        let touchStartY = 0;
-
-        canvas.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-        }, { passive: true });
-
-        canvas.addEventListener('touchend', (e) => {
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-            
-            const dx = touchEndX - touchStartX;
-            const dy = touchEndY - touchStartY;
-
-            if (Math.abs(dx) > Math.abs(dy)) {
-                // Horizontal Swipes
-                if (dx > 40) moveLane(1); // Right
-                if (dx < -40) moveLane(-1); // Left
-            } else {
-                // Vertical Swipes
-                if (dy > 40) slidePlayer(); // Down (Duck)
-                if (dy < -40) jumpPlayer(); // Up (Jump)
-            }
-        }, { passive: true });
-
-        // Touch clicks for simple lane movement (left tap, right tap)
-        canvas.addEventListener('click', (e) => {
-            if (!isPlaying || isDead) return;
-            const clickX = e.clientX - canvas.getBoundingClientRect().left;
-            const width = canvas.width;
-            
-            // If tapped left half -> move left, right half -> move right
-            if (clickX < width * 0.4) {
-                moveLane(-1);
-            } else if (clickX > width * 0.6) {
-                moveLane(1);
-            }
-        });
-
-        // Keyboard Controls
-        window.addEventListener('keydown', (e) => {
-            if (!isPlaying || isDead) return;
-            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') moveLane(-1);
-            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') moveLane(1);
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') jumpPlayer();
-            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') slidePlayer();
-        });
-
-        function moveLane(direction) {
-            if (isDead) return;
-            const newLane = player.targetLane + direction;
-            if (newLane >= 0 && newLane <= 2) {
-                triggerHaptic('light');
-                player.targetLane = newLane;
-            }
-        }
-
-        function jumpPlayer() {
-            if (player.isJumping || player.isDucking) return;
-            triggerHaptic('medium');
-            playSound('jump');
-            player.isJumping = true;
-            player.jumpVelocity = 14;
-        }
-
-        function slidePlayer() {
-            if (player.isJumping || player.isDucking) return;
-            triggerHaptic('light');
-            player.isDucking = true;
-            player.duckTime = 30; // Duck duration in frames
-        }
-
-        // Logic & Math
-        function startGame() {
-            document.getElementById('menu-overlay').classList.remove('active');
-            isPlaying = true;
-            isDead = false;
-            score = 0;
-            diamonds = 0;
-            speed = 8;
-            timeElapsed = 0;
-            
-            player.lane = 1;
-            player.targetLane = 1;
-            player.x = 0;
-            player.jumpY = 0;
-            player.jumpVelocity = 0;
-            player.isJumping = false;
-            player.isDucking = false;
-            player.duckTime = 0;
-            
-            obstacles = [];
-            collectibles = [];
-            particles = [];
-            
-            // Audio context start
-            if (!audioCtx) {
-                audioCtx = new AudioCtx();
-            }
-        }
-
-        function restartGame() {
-            document.getElementById('gameover-overlay').classList.remove('active');
-            startGame();
-        }
-
-        function backToMenu() {
-            document.getElementById('gameover-overlay').classList.remove('active');
-            document.getElementById('menu-overlay').classList.add('active');
-            isPlaying = false;
-            isDead = false;
-        }
-
-        function gameOver() {
-            triggerHaptic('heavy');
-            playSound('crash');
-            isDead = true;
-            
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('minerunner_highscore', highScore);
-                document.getElementById('high-score-val').innerText = String(highScore).padStart(5, '0');
-            }
-
-            document.getElementById('final-score').innerText = score;
-            document.getElementById('final-diamonds').innerText = diamonds;
-            document.getElementById('gameover-overlay').classList.add('active');
-        }
-
-        // Spawn items
-        function spawnObstacle() {
-            const types = ['tnt', 'creeper', 'lava', 'stone_block'];
-            const randType = types[Math.floor(Math.random() * types.length)];
-            const randLane = Math.floor(Math.random() * 3);
-            
-            // Ensure we don't spawn two blocking obstacles at the exact same time
-            if (obstacles.some(obs => obs.z > 900)) return;
-
-            obstacles.push({
-                type: randType,
-                lane: randLane,
-                z: 1000, // Distance away (starts far)
-                width: 50,
-                height: 50
-            });
-        }
-
-        function spawnCollectible() {
-            const randLane = Math.floor(Math.random() * 3);
-            // Don't spawn collectibles inside obstacles
-            if (obstacles.some(obs => obs.lane === randLane && obs.z > 800)) return;
-
-            const type = Math.random() < 0.25 ? 'emerald' : 'diamond';
-
-            collectibles.push({
-                type: type,
-                lane: randLane,
-                z: 1000,
-                pulse: 0
-            });
-        }
-
-        // Confetti particles for diamonds
-        function createParticles(x, y, color) {
-            for (let i = 0; i < 8; i++) {
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 6,
-                    vy: (Math.random() - 0.5) * 6 - 2,
-                    color: color,
-                    life: 20 + Math.random() * 15
-                });
-            }
-        }
-
-        // UPDATE GAME LOOP
-        function update() {
-            if (!isPlaying || isDead) return;
-
-            timeElapsed++;
-            score += Math.floor(speed / 4);
-
-            // Dynamic difficulty: increase speed over time
-            if (timeElapsed % 300 === 0 && speed < 18) {
-                speed += 0.8;
-            }
-
-            // Spawn scheduling
-            if (timeElapsed % 60 === 0) {
-                spawnObstacle();
-            }
-            if (timeElapsed % 45 === 0) {
-                spawnCollectible();
-            }
-
-            // Interpolate player lane movement smoothly
-            const diffX = (player.targetLane - 1) * (canvas.width * LANE_WIDTH_PCT) - player.x;
-            player.x += diffX * 0.22;
-            player.lane = Math.round((player.x / (canvas.width * LANE_WIDTH_PCT)) + 1);
-
-            // Handle jumping
-            if (player.isJumping) {
-                player.jumpY += player.jumpVelocity;
-                player.jumpVelocity -= 0.8; // Gravity simulation
-                if (player.jumpY <= 0) {
-                    player.jumpY = 0;
-                    player.jumpVelocity = 0;
-                    player.isJumping = false;
-                }
-            }
-
-            // Handle ducking
-            if (player.isDucking) {
-                player.duckTime--;
-                if (player.duckTime <= 0) {
-                    player.isDucking = false;
-                }
-            }
-
-            // Running animation frame
-            player.runFrame += speed * 0.05;
-
-            // Move clouds
-            clouds.forEach(cloud => {
-                cloud.x += cloud.speed;
-                if (cloud.x > canvas.width + 100) {
-                    cloud.x = -150;
-                }
-            });
-
-            // Update obstacles
-            for (let i = obstacles.length - 1; i >= 0; i--) {
-                const obs = obstacles[i];
-                obs.z -= speed;
-
-                // Collision Check
-                if (obs.z <= 60 && obs.z >= 10) {
-                    const isSameLane = player.targetLane === obs.lane;
-                    if (isSameLane) {
-                        let hit = false;
-                        if (obs.type === 'tnt' || obs.type === 'creeper') {
-                            // High obstacle: hits unless we are sliding or jumping? 
-                            // Standard hit unless jumping over TNT or dodging
-                            if (player.jumpY < 30) hit = true;
-                        } else if (obs.type === 'lava') {
-                            // Ground pit: hit unless we jump
-                            if (!player.isJumping) hit = true;
-                        } else if (obs.type === 'stone_block') {
-                            // Floating block: hits unless we slide/duck
-                            if (!player.isDucking) hit = true;
-                        }
-
-                        if (hit) {
-                            gameOver();
-                            return;
-                        }
-                    }
-                }
-
-                // Remove far behind obstacles
-                if (obs.z <= 0) {
-                    obstacles.splice(i, 1);
-                }
-            }
-
-            // Update collectibles
-            for (let i = collectibles.length - 1; i >= 0; i--) {
-                const item = collectibles[i];
-                item.z -= speed;
-                item.pulse += 0.1;
-
-                // Collision Check
-                if (item.z <= 60 && item.z >= 10) {
-                    const isSameLane = player.targetLane === item.lane;
-                    // Diamond height matches player
-                    const isAtRightHeight = (item.type === 'diamond' && player.jumpY < 80 && !player.isDucking) || 
-                                           (item.type === 'emerald' && player.jumpY > 20);
-                    
-                    if (isSameLane && (player.isJumping || !player.isDucking)) {
-                        triggerHaptic('light');
-                        playSound('coin');
-                        
-                        // Particle effect
-                        const screenPos = getProjection(item.lane, item.z);
-                        createParticles(screenPos.x, screenPos.y, item.type === 'diamond' ? '#55ffff' : '#55ff55');
-
-                        if (item.type === 'diamond') {
-                            diamonds++;
-                            score += 150;
-                        } else {
-                            diamonds += 2;
-                            score += 300;
-                        }
-                        
-                        collectibles.splice(i, 1);
-                        continue;
-                    }
-                }
-
-                if (item.z <= 0) {
-                    collectibles.splice(i, 1);
-                }
-            }
-
-            // Update particles
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.15; // Gravity
-                p.life--;
-                if (p.life <= 0) {
-                    particles.splice(i, 1);
-                }
-            }
-        }
-
-        // Perspective 3D projection formula
-        function getProjection(lane, z) {
-            const horizonY = canvas.height * HORIZON_Y_PCT;
-            const horizonX = canvas.width * 0.5;
-
-            // Perspective scale factor
-            const scale = 150 / (z + 150);
-
-            // Compute lanes layout
-            const laneOffset = (lane - 1) * (canvas.width * LANE_WIDTH_PCT);
-            const x = horizonX + laneOffset * scale;
-            const y = horizonY + (canvas.height * (1 - HORIZON_Y_PCT)) * scale;
-
-            return { x, y, scale };
-        }
-
-        // DRAW GAME LOOP
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // 1. Draw Sky (Minecraft Blue)
-            ctx.fillStyle = '#6ab8ff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // 2. Draw Sun (Minecraft Square Sun)
-            ctx.fillStyle = '#ffff66';
-            ctx.fillRect(canvas.width - 90, 40, 50, 50);
-            ctx.strokeStyle = '#ffcc00';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(canvas.width - 90, 40, 50, 50);
-
-            // 3. Draw Blocky Clouds
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-            clouds.forEach(cloud => {
-                const cx = cloud.x;
-                const cy = cloud.y;
-                const cs = cloud.scale * 30;
-                // Draw compound blocky rectangle cloud
-                ctx.fillRect(cx, cy, cs * 3, cs);
-                ctx.fillRect(cx + cs, cy - cs * 0.5, cs * 1.5, cs * 1.5);
-            });
-
-            // 4. Draw Background mountains (Pixelated block style)
-            const horizonY = canvas.height * HORIZON_Y_PCT;
-            ctx.fillStyle = '#2d6a4f';
-            ctx.beginPath();
-            ctx.moveTo(0, horizonY);
-            ctx.lineTo(canvas.width * 0.2, horizonY - 40);
-            ctx.lineTo(canvas.width * 0.35, horizonY - 15);
-            ctx.lineTo(canvas.width * 0.5, horizonY - 50);
-            ctx.lineTo(canvas.width * 0.7, horizonY - 20);
-            ctx.lineTo(canvas.width * 0.85, horizonY - 35);
-            ctx.lineTo(canvas.width, horizonY);
-            ctx.closePath();
-            ctx.fill();
-
-            // 5. Draw Ground (Dirt and Grass perspective lines)
-            ctx.fillStyle = '#3f7a26'; // Grass green
-            ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
-
-            // Draw lanes perspective borders
-            ctx.fillStyle = '#7f5539'; // Dirt brown
-            ctx.beginPath();
-            ctx.moveTo(canvas.width * 0.5, horizonY);
-            ctx.lineTo(canvas.width * 0.5 - (canvas.width * LANE_WIDTH_PCT * 1.6), canvas.height);
-            ctx.lineTo(canvas.width * 0.5 + (canvas.width * LANE_WIDTH_PCT * 1.6), canvas.height);
-            ctx.closePath();
-            ctx.fill();
-
-            // Draw individual lane paths (Cobblestone / Gravel look)
-            ctx.fillStyle = '#a3a3a3'; // Light Gray Gravel
-            LANES.forEach(lane => {
-                ctx.beginPath();
-                const pTop = getProjection(lane, 1000);
-                const pBottom = getProjection(lane, 0);
+            <div class="menu-center">
+                <h1 class="game-title main-title">MINE PUBG RUN</h1>
+                <p class="high-score-text">ENG YUQORI BALL: <span id="menu-high-score">0</span></p>
                 
-                const wTop = (canvas.width * LANE_WIDTH_PCT) * pTop.scale * 0.9;
-                const wBottom = (canvas.width * LANE_WIDTH_PCT) * pBottom.scale * 0.9;
+                <button id="play-btn" class="action-btn play-action">
+                    <span>O'YNASH</span> <i class="fa-solid fa-gun"></i>
+                </button>
+            </div>
 
-                ctx.moveTo(pTop.x - wTop * 0.5, pTop.y);
-                ctx.lineTo(pTop.x + wTop * 0.5, pTop.y);
-                ctx.lineTo(pBottom.x + wBottom * 0.5, pBottom.y);
-                ctx.lineTo(pBottom.x - wBottom * 0.5, pBottom.y);
-                ctx.closePath();
-                ctx.fill();
+            <div class="menu-bottom">
+                <button id="shop-btn" class="menu-tab-btn"><i class="fa-solid fa-box-open"></i> Do'kon</button>
+                <button id="leaderboard-btn" class="menu-tab-btn"><i class="fa-solid fa-trophy"></i> Reyting</button>
+                <button id="missions-btn" class="menu-tab-btn"><i class="fa-solid fa-list-check"></i> Vazifalar</button>
+                <button id="settings-btn" class="menu-tab-btn"><i class="fa-solid fa-gears"></i> Sozlash</button>
+            </div>
+            
+            <button id="daily-reward-btn" class="daily-reward-floating">
+                <i class="fa-solid fa-gift"></i>
+                <span class="badge">!</span>
+            </button>
+        </div>
 
-                // Draw cobblestone border lines
-                ctx.strokeStyle = '#5c5c5c';
-                ctx.lineWidth = 2 * pBottom.scale;
-                ctx.beginPath();
-                ctx.moveTo(pTop.x - wTop * 0.5, pTop.y);
-                ctx.lineTo(pBottom.x - wBottom * 0.5, pBottom.y);
-                ctx.moveTo(pTop.x + wTop * 0.5, pTop.y);
-                ctx.lineTo(pBottom.x + wBottom * 0.5, pBottom.y);
-                ctx.stroke();
-            });
+        <!-- ================= HUD (IN-GAME SCREEN) ================= -->
+        <div id="hud" class="screen-overlay">
+            <div class="hud-top">
+                <div class="hud-stats">
+                    <div class="hud-stat-item">
+                        <span class="hud-label">SCORE</span>
+                        <span id="hud-score" class="hud-value">000000</span>
+                    </div>
+                    <div class="hud-stat-item">
+                        <span class="hud-label">DISTANCE</span>
+                        <span id="hud-distance" class="hud-value">0 m</span>
+                    </div>
+                </div>
 
-            // 6. Draw Collectibles (Diamonds & Emeralds)
-            collectibles.forEach(item => {
-                const proj = getProjection(item.lane, item.z);
-                if (proj.scale <= 0.05) return;
+                <div class="hud-wallet">
+                    <div class="hud-wallet-item">
+                        <i class="fa-solid fa-cube icon-gold"></i>
+                        <span id="hud-coins">0</span>
+                    </div>
+                    <button id="pause-btn" class="hud-pause-btn"><i class="fa-solid fa-pause"></i></button>
+                </div>
+            </div>
 
-                const size = 25 * proj.scale;
-                const bobOffset = Math.sin(item.pulse) * 8 * proj.scale;
+            <div class="hud-center">
+                <!-- Active Powerup Indicators -->
+                <div id="active-powerups-container">
+                    <!-- Dynamic active power-up bars go here -->
+                </div>
+            </div>
+            
+            <div class="hud-bottom-shoot-hint">
+                <p><i class="fa-solid fa-crosshairs"></i> Ekranga bosib to'siqlarni otib buzing!</p>
+            </div>
+        </div>
 
-                ctx.save();
-                ctx.translate(proj.x, proj.y - 25 * proj.scale + bobOffset);
+        <!-- ================= PAUSE MENU ================= -->
+        <div id="pause-menu" class="screen-overlay">
+            <div class="modal-card">
+                <h2>O'yin To'xtatildi</h2>
+                <div class="modal-actions-vertical">
+                    <button id="resume-btn" class="action-btn"><i class="fa-solid fa-play"></i> Davom Etish</button>
+                    <button id="restart-btn" class="action-btn secondary-btn"><i class="fa-solid fa-rotate-left"></i> Boshidan boshlash</button>
+                    <button id="quit-btn" class="action-btn danger-btn"><i class="fa-solid fa-house"></i> Chiqish</button>
+                </div>
+            </div>
+        </div>
 
-                // Draw pixelated Diamond/Emerald gem shape
-                ctx.fillStyle = item.type === 'diamond' ? '#55ffff' : '#55ff55';
-                ctx.strokeStyle = item.type === 'diamond' ? '#00aaaa' : '#00aa00';
-                ctx.lineWidth = Math.max(1, 2 * proj.scale);
+        <!-- ================= GAME OVER SCREEN ================= -->
+        <div id="game-over-screen" class="screen-overlay">
+            <div class="modal-card game-over-card">
+                <h1 class="game-over-title">TAMOM!</h1>
+                <p class="game-over-subtitle">Sizni mag'lub etishdi</p>
 
-                ctx.beginPath();
-                ctx.moveTo(0, -size);
-                ctx.lineTo(size * 0.7, 0);
-                ctx.lineTo(0, size);
-                ctx.lineTo(-size * 0.7, 0);
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
+                <div class="game-over-stats-grid">
+                    <div class="go-stat-card">
+                        <span class="go-label">Masofa</span>
+                        <span id="go-distance" class="go-value">0 m</span>
+                    </div>
+                    <div class="go-stat-card">
+                        <span class="go-label">Oltin Bloklar</span>
+                        <span id="go-coins" class="go-value">0</span>
+                    </div>
+                    <div class="go-stat-card full-width">
+                        <span class="go-label">Yakuniy Ball</span>
+                        <span id="go-score" class="go-value-highlight">0</span>
+                    </div>
+                </div>
 
-                // Shading white gleam
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(-size * 0.2, -size * 0.6, size * 0.3, size * 0.3);
-                ctx.restore();
-            });
+                <div id="new-high-score-banner" class="hidden">
+                    <i class="fa-solid fa-crown icon-gold"></i> YANGI REKORD!
+                </div>
 
-            // 7. Draw Obstacles (TNT, Creeper, Lava, Floating block)
-            obstacles.sort((a,b) => b.z - a.z).forEach(obs => {
-                const proj = getProjection(obs.lane, obs.z);
-                if (proj.scale <= 0.05) return;
+                <div class="modal-actions-horizontal">
+                    <button id="go-home-btn" class="action-btn secondary-btn square-btn"><i class="fa-solid fa-house"></i></button>
+                    <button id="go-restart-btn" class="action-btn play-action flex-grow-btn">QAYTA BOSHLASH <i class="fa-solid fa-rotate-left"></i></button>
+                </div>
+            </div>
+        </div>
 
-                const size = 70 * proj.scale;
+        <!-- ================= SHOP PANEL ================= -->
+        <div id="shop-panel" class="screen-overlay modal-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-box-open"></i> DO'KON</h2>
+                <button class="close-panel-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="panel-wallet">
+                <div class="hud-wallet-item">
+                    <i class="fa-solid fa-cube icon-gold"></i>
+                    <span id="shop-coin-count">0</span>
+                </div>
+            </div>
+            <div class="panel-body">
+                <!-- Shop Tabs -->
+                <div class="shop-tabs">
+                    <button class="shop-tab-toggle active" data-tab="upgrades">KUCHAYTIRGICHLAR</button>
+                    <button class="shop-tab-toggle" data-tab="skins">TERILAR (SKINS)</button>
+                </div>
 
-                ctx.save();
+                <!-- Upgrades Tab Content -->
+                <div id="shop-tab-upgrades" class="shop-tab-content active">
+                    <div class="shop-items-list">
+                        <!-- Magnet Upgrade -->
+                        <div class="shop-item">
+                            <div class="item-icon magnet-bg"><i class="fa-solid fa-magnet"></i></div>
+                            <div class="item-details">
+                                <h3>Voxel Magniti</h3>
+                                <p>Oltin bloklarni uzoqroqdan tortib oladi.</p>
+                                <div class="upgrade-levels" id="magnet-levels">
+                                    <span class="level-dot filled"></span>
+                                    <span class="level-dot"></span>
+                                    <span class="level-dot"></span>
+                                    <span class="level-dot"></span>
+                                    <span class="level-dot"></span>
+                                </div>
+                            </div>
+                            <button class="buy-upgrade-btn" data-powerup="magnet">
+                                <span class="price-val">500</span> <i class="fa-solid fa-cube icon-gold"></i>
+                            </button>
+                        </div>
+
+                        <!-- Jetpack Upgrade -->
+                        <div class="shop-item">
+                            <div class="item-icon jetpack-bg"><i class="fa-solid fa-rocket"></i></div>
+                            <div class="item-details">
+                                <h3>Parashyut / Jetpack</h3>
+                                <p>Osmonda uchish vaqtini uzaytiradi.</p>
+                                <div class="upgrade-levels" id="jetpack-levels">
+                                    <span class="level-dot filled"></span>
+                                    <span class="level-dot"></span>
+                                    <span class="level-dot"></span>
+                                    <span class="level-dot"></span>
+                                    <span class="level-dot"></span>
+                                </div>
+                            </div>
+                            <button class="buy-upgrade-btn" data-powerup="jetpack">
+                                <span class="price-val">750</span> <i class="fa-solid fa-cube icon-gold"></i>
+                            </button>
+                        </div>
+
+                        <!-- Multiplier Upgrade -->
+                        <div class="shop-item">
+                            <div class="item-icon multiplier-bg"><i class="fa-solid fa-arrow-up-right-dots"></i></div>
+                            <div class="item-details">
+                                <h3>2X Ko'paytirgich</h3>
+                                <p>Ballar 2 barobar tezroq hisoblanadi.</p>
+                                <div class="upgrade-levels" id="multiplier-levels">
+                                    <span class="level-dot filled"></span>
+                                    <span class="level-dot"></span>
+                                    <span class="level-dot"></span>
+                                    <span class="level-dot"></span>
+                                    <span class="level-dot"></span>
+                                </div>
+                            </div>
+                            <button class="buy-upgrade-btn" data-powerup="multiplier">
+                                <span class="price-val">1000</span> <i class="fa-solid fa-cube icon-gold"></i>
+                            </button>
+                        </div>
+
+                        <!-- Shield Upgrade -->
+                        <div class="shop-item">
+                            <div class="item-icon shield-bg"><i class="fa-solid fa-shield-halved"></i></div>
+                            <div class="item-details">
+                                <h3>Harbiy Qubba (Shield)</h3>
+                                <p>Bitta to'qnashuvdan himoya qiladi.</p>
+                                <div class="upgrade-levels" id="shield-levels">
+                                    <span class="level-dot filled"></span>
+                                    <span class="level-dot"></span>
+                                    <span class="level-dot"></span>
+                                    <span class="level-dot"></span>
+                                    <span class="level-dot"></span>
+                                </div>
+                            </div>
+                            <button class="buy-upgrade-btn" data-powerup="shield">
+                                <span class="price-val">600</span> <i class="fa-solid fa-cube icon-gold"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skins Tab Content -->
+                <div id="shop-tab-skins" class="shop-tab-content">
+                    <div class="skins-grid">
+                        <!-- Classic Outrunner -->
+                        <div class="skin-card active" data-skin="classic">
+                            <div class="skin-preview classic-skin-bg">👦</div>
+                            <div class="skin-meta">
+                                <h4>Steve (Klassik)</h4>
+                                <span class="skin-status">Tanlangan</span>
+                            </div>
+                        </div>
+
+                        <!-- Cyber Runner -->
+                        <div class="skin-card locked" data-skin="cyber" data-price="2000">
+                            <div class="skin-preview cyber-skin-bg">👽</div>
+                            <div class="skin-meta">
+                                <h4>Kiber Harbiy</h4>
+                                <button class="unlock-skin-btn">2000 <i class="fa-solid fa-cube"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Golden Champion -->
+                        <div class="skin-card locked" data-skin="gold" data-price="5000">
+                            <div class="skin-preview gold-skin-bg">👑</div>
+                            <div class="skin-meta">
+                                <h4>Oltin Jangchi</h4>
+                                <button class="unlock-skin-btn">5000 <i class="fa-solid fa-cube"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= LEADERBOARD PANEL ================= -->
+        <div id="leaderboard-panel" class="screen-overlay modal-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-trophy icon-gold"></i> MINE PUBG REYTINGI</h2>
+                <button class="close-panel-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="panel-body">
+                <div class="leaderboard-list" id="leaderboard-items">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= MISSIONS PANEL ================= -->
+        <div id="missions-panel" class="screen-overlay modal-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-list-check"></i> VAZIFALAR VA YUTUQLAR</h2>
+                <button class="close-panel-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="panel-body">
+                <div class="missions-section">
+                    <h3>KUNLIK HARBIY VAZIFALAR</h3>
+                    <div class="mission-item" id="mission-coins">
+                        <div class="mission-details">
+                            <span class="mission-desc">Bitta o'yinda 200 ta oltin yig'ing</span>
+                            <span class="mission-progress">0 / 200</span>
+                        </div>
+                        <div class="mission-bar-container"><div class="mission-bar" style="width: 0%"></div></div>
+                    </div>
+                    <div class="mission-item" id="mission-jumps">
+                        <div class="mission-details">
+                            <span class="mission-desc">To'siqlardan 20 marta sakrang</span>
+                            <span class="mission-progress">0 / 20</span>
+                        </div>
+                        <div class="mission-bar-container"><div class="mission-bar" style="width: 0%"></div></div>
+                    </div>
+                </div>
+
+                <div class="missions-section">
+                    <h3>HARBIY ORDENS (ACHIEVEMENTS)</h3>
+                    <div class="achievement-item" id="ach-distance">
+                        <i class="fa-solid fa-medal icon-bronze"></i>
+                        <div class="ach-details">
+                            <h4>Tajribali Askari</h4>
+                            <p>Jami bosib o'tilgan yo'l 10,000 metr.</p>
+                            <span class="ach-progress">0 / 10000 m</span>
+                        </div>
+                    </div>
+                    <div class="achievement-item" id="ach-coins">
+                        <i class="fa-solid fa-medal icon-gold"></i>
+                        <div class="ach-details">
+                            <h4>Oltin Qidiruvchi</h4>
+                            <p>Jami tangalar soni 5,000 taga yetsin.</p>
+                            <span class="ach-progress">0 / 5000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= SETTINGS PANEL ================= -->
+        <div id="settings-panel" class="screen-overlay modal-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-gears"></i> SOZLAMALAR</h2>
+                <button class="close-panel-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="panel-body">
+                <div class="settings-group">
+                    <h3>Grafika Sifati</h3>
+                    <div class="quality-selector">
+                        <button class="quality-btn" data-quality="low">Low</button>
+                        <button class="quality-btn" data-quality="medium">Med</button>
+                        <button class="quality-btn active" data-quality="high">High</button>
+                        <button class="quality-btn" data-quality="ultra">Ultra</button>
+                    </div>
+                    <p class="setting-hint">Agar o'yin sekinlashsa, Low yoki Medium sifatni tanlang.</p>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Ovoz Sozlamalari</h3>
+                    <div class="audio-control-row">
+                        <span>Musiqa (BGM)</span>
+                        <input type="range" id="bgm-volume" min="0" max="1" step="0.1" value="0.5">
+                    </div>
+                    <div class="audio-control-row">
+                        <span>Effektlar (SFX)</span>
+                        <input type="range" id="sfx-volume" min="0" max="1" step="0.1" value="0.8">
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Ob-Havo</h3>
+                    <div class="weather-selector">
+                        <button class="weather-btn active" data-weather="normal">Quyoshli</button>
+                        <button class="weather-btn" data-weather="rain">Yomg'irli</button>
+                        <button class="weather-btn" data-weather="snow">Qorli</button>
+                    </div>
+                </div>
+
+                <div class="settings-group control-guide">
+                    <h3>Boshqarish Yo'riqnomasi</h3>
+                    <div class="control-row">
+                        <span class="key-box"><i class="fa-solid fa-arrow-left"></i> / <i class="fa-solid fa-arrow-right"></i></span>
+                        <span>Harakat (Chap / O'ng) yoki Swipe</span>
+                    </div>
+                    <div class="control-row">
+                        <span class="key-box"><i class="fa-solid fa-arrow-up"></i></span>
+                        <span>Sakrash yoki Swipe Up</span>
+                    </div>
+                    <div class="control-row">
+                        <span class="key-box"><i class="fa-solid fa-arrow-down"></i></span>
+                        <span>Yotish (Roll) yoki Swipe Down</span>
+                    </div>
+                    <div class="control-row">
+                        <span class="key-box">Click / Tap</span>
+                        <span>Quroldan o'q otish (To'siqlarni buzish!)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= DAILY REWARD MODAL ================= -->
+        <div id="daily-reward-modal" class="screen-overlay">
+            <div class="modal-card reward-card">
+                <h2>KUNLIK TA'MINOT (REWARD)</h2>
+                <p>Har kuni botga kiring va jangovar oltinlarga ega bo'ling!</p>
                 
-                if (obs.type === 'tnt') {
-                    // Draw blocky red TNT box
-                    ctx.translate(proj.x - size * 0.5, proj.y - size);
-                    
-                    // Red face
-                    ctx.fillStyle = '#ff2222';
-                    ctx.fillRect(0, 0, size, size);
-                    
-                    // White band
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, size * 0.35, size, size * 0.3);
-                    
-                    // TNT Text
-                    ctx.fillStyle = '#000000';
-                    ctx.font = `bold ${Math.max(6, Math.floor(10 * proj.scale))}px 'Press Start 2P', monospace`;
-                    ctx.textAlign = 'center';
-                    ctx.fillText("TNT", size * 0.5, size * 0.58);
+                <div class="reward-days-grid">
+                    <div class="day-item claimed" data-day="1">
+                        <span class="day-lbl">Kun 1</span>
+                        <i class="fa-solid fa-cube"></i>
+                        <span class="reward-amt">+100</span>
+                    </div>
+                    <div class="day-item active" id="day-today" data-day="2">
+                        <span class="day-lbl">Kun 2</span>
+                        <i class="fa-solid fa-cube icon-gold"></i>
+                        <span class="reward-amt">+200</span>
+                    </div>
+                    <div class="day-item" data-day="3">
+                        <span class="day-lbl">Kun 3</span>
+                        <i class="fa-solid fa-cube"></i>
+                        <span class="reward-amt">+300</span>
+                    </div>
+                    <div class="day-item" data-day="4">
+                        <span class="day-lbl">Kun 4</span>
+                        <i class="fa-solid fa-cube"></i>
+                        <span class="reward-amt">+400</span>
+                    </div>
+                    <div class="day-item" data-day="5">
+                        <span class="day-lbl">Kun 5</span>
+                        <i class="fa-solid fa-gem icon-diamond"></i>
+                        <span class="reward-amt">+5 Olmos</span>
+                    </div>
+                </div>
 
-                    // Top fuse grid
-                    ctx.fillStyle = '#444444';
-                    ctx.fillRect(size * 0.4, -size * 0.1, size * 0.2, size * 0.1);
-                    ctx.fillStyle = '#e29e00';
-                    ctx.fillRect(size * 0.45, -size * 0.15, size * 0.1, size * 0.05);
+                <button id="claim-reward-btn" class="action-btn">QABUL QILISH</button>
+            </div>
+        </div>
 
-                } else if (obs.type === 'creeper') {
-                    // Draw 3D-like Creeper Face Block
-                    ctx.translate(proj.x - size * 0.4, proj.y - size * 1.3);
-
-                    // Head green box
-                    ctx.fillStyle = '#22aa22';
-                    ctx.fillRect(0, 0, size * 0.8, size * 0.8);
-                    ctx.strokeStyle = '#006600';
-                    ctx.lineWidth = Math.max(1, 2 * proj.scale);
-                    ctx.strokeRect(0, 0, size * 0.8, size * 0.8);
-
-                    // Eyes (black blocks)
-                    ctx.fillStyle = '#000000';
-                    const es = size * 0.15;
-                    ctx.fillRect(size * 0.12, size * 0.2, es, es);
-                    ctx.fillRect(size * 0.52, size * 0.2, es, es);
-                    
-                    // Mouth
-                    ctx.fillRect(size * 0.27, size * 0.35, size * 0.26, size * 0.3);
-                    ctx.fillRect(size * 0.2, size * 0.45, size * 0.4, size * 0.25);
-
-                    // Body cylinder (simple 2D rectangle)
-                    ctx.fillStyle = '#0f8a0f';
-                    ctx.fillRect(size * 0.15, size * 0.8, size * 0.5, size * 0.5);
-
-                } else if (obs.type === 'lava') {
-                    // Draw flat lava puddle on the ground
-                    const w = (canvas.width * LANE_WIDTH_PCT) * proj.scale;
-                    ctx.translate(proj.x, proj.y);
-                    
-                    // Outer dark red
-                    ctx.fillStyle = '#900000';
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, w * 0.6, 12 * proj.scale, 0, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Inner glowing orange lava
-                    ctx.fillStyle = '#ff6600';
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, w * 0.5, 8 * proj.scale, 0, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Yellow flame sparkles
-                    ctx.fillStyle = '#ffff00';
-                    ctx.fillRect(-w*0.1, -12*proj.scale*Math.sin(timeElapsed/5), 4*proj.scale, 4*proj.scale);
-                    ctx.fillRect(w*0.2, -8*proj.scale*Math.cos(timeElapsed/8), 3*proj.scale, 3*proj.scale);
-
-                } else if (obs.type === 'stone_block') {
-                    // Floating stone arch block
-                    const h = size * 0.8;
-                    // Lower border is floating
-                    ctx.translate(proj.x - size * 0.6, proj.y - size * 1.5);
-                    
-                    // Gray stone box
-                    ctx.fillStyle = '#7a7a7a';
-                    ctx.fillRect(0, 0, size * 1.2, h);
-                    ctx.strokeStyle = '#4e4e4e';
-                    ctx.lineWidth = Math.max(1, 3 * proj.scale);
-                    ctx.strokeRect(0, 0, size * 1.2, h);
-
-                    // Draw cracked details
-                    ctx.strokeStyle = '#3a3a3a';
-                    ctx.beginPath();
-                    ctx.moveTo(size * 0.2, 0);
-                    ctx.lineTo(size * 0.3, h * 0.4);
-                    ctx.lineTo(size * 0.5, h * 0.3);
-                    ctx.stroke();
-                }
-
-                ctx.restore();
-            });
-
-            // 8. Draw Player (Steve from Minecraft)
-            if (isPlaying) {
-                // Determine screen X based on interpolated lane player.x
-                const horizonY = canvas.height * HORIZON_Y_PCT;
-                const horizonX = canvas.width * 0.5;
-                const pSize = 100; // Base size of Steve
-
-                const screenX = horizonX + player.x;
-                const screenY = canvas.height - 80 - player.jumpY;
-
-                ctx.save();
-                ctx.translate(screenX, screenY);
-
-                // Add slight side tilt based on lane change
-                const targetX = (player.targetLane - 1) * (canvas.width * LANE_WIDTH_PCT);
-                const tilt = (targetX - player.x) * 0.05;
-                ctx.rotate(tilt * Math.PI / 180);
-
-                // Adjust Steve drawing if Ducking
-                let headScaleY = 1.0;
-                let bodyScaleY = 1.0;
-                let bodyYOffset = 0;
-
-                if (player.isDucking) {
-                    bodyScaleY = 0.5;
-                    headScaleY = 0.6;
-                    bodyYOffset = 30; // Shift down
-                }
-
-                // Leg swing angle
-                const swing = Math.sin(player.runFrame) * 20 * (player.isJumping ? 0 : 1);
-
-                // --- STEVE BLOCK BODY DRAWING ---
-
-                // Draw Legs
-                ctx.fillStyle = '#3c44a5'; // Dark blue indigo pants
-                if (!player.isDucking) {
-                    // Left Leg (swings forward/backward)
-                    ctx.fillRect(-16, 25 - bodyYOffset, 14, 25);
-                    // Right Leg
-                    ctx.fillRect(2, 25 - bodyYOffset, 14, 25);
-                } else {
-                    // Duck legs (folded)
-                    ctx.fillRect(-18, 15, 14, 15);
-                    ctx.fillRect(4, 15, 14, 15);
-                }
-
-                // Draw Torso (Cyan shirt)
-                ctx.fillStyle = '#00a3a3'; // Light teal/blue shirt
-                ctx.fillRect(-18, -15 + bodyYOffset, 36, 40 * bodyScaleY);
-
-                // Draw Arms
-                ctx.fillStyle = '#8f5c3c'; // Steve skin brown
-                if (!player.isDucking) {
-                    // Left Arm
-                    ctx.fillStyle = '#00a3a3'; // Shirt sleeve
-                    ctx.fillRect(-28, -15, 10, 15);
-                    ctx.fillStyle = '#8f5c3c'; // Skin
-                    ctx.fillRect(-28, 0, 10, 15);
-
-                    // Right Arm
-                    ctx.fillStyle = '#00a3a3'; // Shirt sleeve
-                    ctx.fillRect(18, -15, 10, 15);
-                    ctx.fillStyle = '#8f5c3c'; // Skin
-                    ctx.fillRect(18, 0, 10, 15);
-                }
-
-                // Draw Head (Square brown hair/skin)
-                ctx.fillStyle = '#8f5c3c'; // Skin
-                ctx.fillRect(-14, -40 + bodyYOffset + (player.isDucking ? 20 : 0), 28, 26 * headScaleY);
-                // Hair (dark brown)
-                ctx.fillStyle = '#2f1f17';
-                ctx.fillRect(-14, -40 + bodyYOffset + (player.isDucking ? 20 : 0), 28, 8 * headScaleY); // Hair top
-                ctx.fillRect(-14, -32 + bodyYOffset + (player.isDucking ? 20 : 0), 6, 8 * headScaleY); // Left side burn
-                ctx.fillRect(8, -32 + bodyYOffset + (player.isDucking ? 20 : 0), 6, 8 * headScaleY); // Right side burn
-
-                // Blue Eyes (from back we don't draw eyes, but if we do slight 3/4 view: we can show them on sides)
+        <!-- ================= PROFILE MODAL ================= -->
+        <div id="profile-modal" class="screen-overlay">
+            <div class="modal-card">
+                <div class="profile-header-modal">
+                    <div class="profile-avatar"><i class="fa-solid fa-user-ninja"></i></div>
+                    <h2 id="profile-name">Askari</h2>
+                </div>
                 
-                ctx.restore();
-            }
+                <div class="profile-stats-list">
+                    <div class="p-stat-row">
+                        <span>Jami janglar:</span>
+                        <strong id="p-total-runs">0</strong>
+                    </div>
+                    <div class="p-stat-row">
+                        <span>Jami masofa:</span>
+                        <strong id="p-total-distance">0 m</strong>
+                    </div>
+                    <div class="p-stat-row">
+                        <span>Ishlatilgan Ta'minotlar:</span>
+                        <strong id="p-total-powerups">0 ta</strong>
+                    </div>
+                    <div class="p-stat-row">
+                        <span>Shaxsiy rekord:</span>
+                        <strong id="p-high-score">0</strong>
+                    </div>
+                </div>
 
-            // 9. Draw Particle explosions
-            particles.forEach(p => {
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, 6, 6);
-            });
+                <button id="close-profile-btn" class="action-btn secondary-btn">YOPISH</button>
+            </div>
+        </div>
 
-            // 10. Draw UI HUD Overlay (Minecraft style)
-            if (isPlaying && !isDead) {
-                // Draw Score
-                ctx.fillStyle = '#000000';
-                ctx.font = "14px 'Press Start 2P', monospace";
-                ctx.fillText(`SCORE: ${String(score).padStart(5, '0')}`, 17, 32);
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText(`SCORE: ${String(score).padStart(5, '0')}`, 15, 30);
+    </div>
 
-                // Draw Diamonds
-                ctx.fillStyle = '#000000';
-                ctx.font = "14px 'Press Start 2P', monospace";
-                ctx.fillText(`DIAMONDS: ${diamonds}`, 17, 62);
-                ctx.fillStyle = '#55ffff';
-                ctx.fillText(`DIAMONDS: ${diamonds}`, 15, 60);
-            }
-        }
-
-        // Main game ticker
-        function gameTick() {
-            update();
-            draw();
-            requestAnimationFrame(gameTick);
-        }
-
-        // Initialize Loop
-        gameTick();
-    </script>
+    <!-- Application script as a module -->
+    <script type="module" src="main.js"></script>
 </body>
 </html>
