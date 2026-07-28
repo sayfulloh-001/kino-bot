@@ -217,15 +217,19 @@ async def admin_handler(message: types.Message):
 # ==========================================
 
 async def set_menu_button(bot: Bot):
-    """Resets the bottom-left Menu Button in chat to default."""
-    try:
-        from aiogram.types import MenuButtonDefault
-        await bot.set_chat_menu_button(
-            menu_button=MenuButtonDefault()
-        )
-        logger.info("Chat Menu Button reset to default.")
-    except Exception as e:
-        logger.error(f"Failed to reset Chat Menu Button: {e}")
+    """Sets the bottom-left Menu Button in chat to open the Web App."""
+    if WEB_APP_URL:
+        try:
+            from aiogram.types import MenuButtonWebApp
+            await bot.set_chat_menu_button(
+                menu_button=MenuButtonWebApp(
+                    text="Play",
+                    web_app=WebAppInfo(url=WEB_APP_URL)
+                )
+            )
+            logger.info(f"Chat Menu Button configured with Web App URL: {WEB_APP_URL}")
+        except Exception as e:
+            logger.error(f"Failed to set Chat Menu Button: {e}")
 
 async def main() -> None:
     logger.info("Initializing Telegram Game Bot...")
