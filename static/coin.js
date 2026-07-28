@@ -9,6 +9,7 @@ export class Collectible {
         this.type = type;
         this.mesh = new THREE.Group();
         this.mesh.position.set(xPos, yPos, zPos);
+        this.originalX = xPos;
         this.collected = false;
 
         this.buildMesh();

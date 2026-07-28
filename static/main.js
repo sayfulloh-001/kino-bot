@@ -44,6 +44,7 @@ class GameManager {
         // Weather particles
         this.weatherParticles = null;
         this.weatherType = saveManager.data.settings.weather; // 'normal', 'rain', 'snow'
+        this.currentSeason = 'bahor';
         
         // Setup Three.js core components
         this.initThree();
@@ -322,6 +323,9 @@ class GameManager {
         this.coinMgr.reset();
         this.powerupMgr.reset();
 
+        this.currentSeason = 'bahor';
+        this.applySeasonSettings('bahor');
+
         this.clock.getDelta(); // Clear delta timer accumulator
         this.ui.showHUD();
         audioManager.playBGM();
@@ -441,8 +445,43 @@ class GameManager {
         }
     }
 
+    checkSeasonCycle() {
+        const seasonIndex = Math.floor(this.distance / 300) % 4;
+        const seasons = ['bahor', 'yoz', 'kuz', 'qish'];
+        const newSeason = seasons[seasonIndex];
+        
+        if (newSeason !== this.currentSeason) {
+            this.currentSeason = newSeason;
+            this.applySeasonSettings(newSeason);
+        }
+    }
+
+    applySeasonSettings(season) {
+        if (this.mapGen) {
+            this.mapGen.setSeason(season);
+        }
+        
+        if (season === 'bahor') {
+            this.changeWeather('normal');
+            if (this.dirLight) this.dirLight.color.setHex(0xffffff);
+            if (this.ambientLight) this.ambientLight.color.setHex(0xdbeafe);
+        } else if (season === 'yoz') {
+            this.changeWeather('rain'); // Yoz has rain/weather
+            if (this.dirLight) this.dirLight.color.setHex(0xfef08a);
+            if (this.ambientLight) this.ambientLight.color.setHex(0xfef08a);
+        } else if (season === 'kuz') {
+            this.changeWeather('autumn'); // Autumn leaf storm
+            if (this.dirLight) this.dirLight.color.setHex(0xfb923c);
+            if (this.ambientLight) this.ambientLight.color.setHex(0xffedd5);
+        } else if (season === 'qish') {
+            this.changeWeather('snow'); // Winter snow storm
+            if (this.dirLight) this.dirLight.color.setHex(0xe2e8f0);
+            if (this.ambientLight) this.ambientLight.color.setHex(0xf1f5f9);
+        }
+    }
+
     /**
-     * Spawn weather particles (Rain drops or Snow flakes).
+     * Spawn weather particles (Rain drops, Snow flakes, or Autumn leaves).
      */
     changeWeather(weather) {
         this.weatherType = weather;
@@ -457,7 +496,7 @@ class GameManager {
         if (weather === 'normal') return;
 
         // Construct weather particle system
-        const pCount = weather === 'rain' ? 300 : 150;
+        const pCount = weather === 'rain' ? 300 : (weather === 'autumn' ? 100 : 150);
         const geo = new THREE.BufferGeometry();
         const positions = [];
         const velocities = [];
@@ -468,20 +507,28 @@ class GameManager {
                 randomRange(5, 15),   // Y
                 randomRange(-20, 20)  // Z
             );
-            velocities.push(
-                weather === 'rain' ? -15 : -3 // Falling Y velocity
-            );
+            
+            let velY = -3;
+            if (weather === 'rain') velY = -15;
+            else if (weather === 'autumn') velY = -2.2;
+            velocities.push(velY);
         }
 
         geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         
-        const colorVal = weather === 'rain' ? 0x00ffff : 0xffffff;
-        const sizeVal = weather === 'rain' ? 0.08 : 0.15;
+        let colorVal = 0xffffff;
+        if (weather === 'rain') colorVal = 0x22d3ee;
+        else if (weather === 'autumn') colorVal = 0xd97706; // Autumn orange
+        
+        let sizeVal = 0.15;
+        if (weather === 'rain') sizeVal = 0.08;
+        else if (weather === 'autumn') sizeVal = 0.22;
+        
         const mat = new THREE.PointsMaterial({ 
             color: colorVal, 
             size: sizeVal, 
             transparent: true, 
-            opacity: 0.6 
+            opacity: 0.7 
         });
 
         this.weatherParticles = new THREE.Points(geo, mat);
@@ -501,6 +548,12 @@ class GameManager {
         for (let i = 0; i < positions.length; i += 3) {
             // Apply gravity/falling velocity to Y
             positions[i + 1] += vels[i / 3] * delta;
+            
+            // Apply horizontal wind drift for autumn leaves
+            if (this.weatherType === 'autumn') {
+                positions[i] += (Math.sin(positions[i + 1] * 0.4 + i) * 1.5 - 2.0) * delta;
+                positions[i + 2] += (Math.cos(positions[i + 1] * 0.4 + i) * 0.4) * delta;
+            }
             
             // Loop particles if they hit ground level
             if (positions[i + 1] < 0) {
@@ -552,6 +605,50 @@ class GameManager {
             this.obstacleMgr.update(pZ, delta);
             this.coinMgr.update(this.player.mesh, this.activePowerups.magnet > 0, pZ, delta);
             this.powerupMgr.update(pZ, delta);
+            this.checkSeasonCycle();
+
+            // World Bending calculation (qiyshaytirib)
+            const curveStrength = Math.sin(pZ * 0.003) * 0.0006;
+
+            // 1. Bend active map chunks
+            for (const chunk of this.mapGen.activeChunks) {
+                const dz = chunk.position.z - pZ;
+                if (dz > 0) {
+                    chunk.position.x = curveStrength * dz * dz;
+                } else {
+                    chunk.position.x = 0;
+                }
+            }
+
+            // 2. Bend obstacles
+            for (const obs of this.obstacleMgr.obstacles) {
+                const dz = obs.mesh.position.z - pZ;
+                if (dz > 0) {
+                    obs.mesh.position.x = obs.originalX + curveStrength * dz * dz;
+                } else {
+                    obs.mesh.position.x = obs.originalX;
+                }
+            }
+
+            // 3. Bend coins
+            for (const coin of this.coinMgr.items) {
+                const dz = coin.mesh.position.z - pZ;
+                if (dz > 0) {
+                    coin.mesh.position.x = coin.originalX + curveStrength * dz * dz;
+                } else {
+                    coin.mesh.position.x = coin.originalX;
+                }
+            }
+
+            // 4. Bend powerups
+            for (const pu of this.powerupMgr.items) {
+                const dz = pu.mesh.position.z - pZ;
+                if (dz > 0) {
+                    pu.mesh.position.x = pu.originalX + curveStrength * dz * dz;
+                } else {
+                    pu.mesh.position.x = pu.originalX;
+                }
+            }
 
             // 6. Physics Collision Checks
             this.checkGameCollisions(delta);
@@ -573,6 +670,11 @@ class GameManager {
             // Idle menu animations
             this.player.update(delta, 0);
             followCamera.update(this.player.mesh, 0, delta);
+            
+            // Reset bending when in menu
+            for (const chunk of this.mapGen.activeChunks) {
+                chunk.position.x = 0;
+            }
         }
 
         // Render scene

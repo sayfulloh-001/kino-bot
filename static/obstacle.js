@@ -9,6 +9,7 @@ export class Obstacle {
         this.type = type;
         this.mesh = new THREE.Group();
         this.mesh.position.set(xPos, 0, zPos);
+        this.originalX = xPos;
         
         // Bounding box size dimensions
         this.size = { width: 1.0, height: 1.0, depth: 1.0 };

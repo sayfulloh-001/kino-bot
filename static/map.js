@@ -189,4 +189,28 @@ export class MapGenerator {
         this.chunkIdCounter = 0;
         this.generateInitialMap();
     }
+
+    setSeason(season) {
+        let grassColor = 0x16a34a; // Bahor (Spring green)
+        let leavesColor = 0x15803d;
+        let dirtColor = 0x78350f;
+
+        if (season === 'yoz') {
+            grassColor = 0xa3e635; // Yoz (Bright lime green)
+            leavesColor = 0x16a34a; 
+            dirtColor = 0x854d0e;
+        } else if (season === 'kuz') {
+            grassColor = 0xd97706; // Kuz (Autumn orange/brown)
+            leavesColor = 0xea580c; // Autumn red-orange leaves
+            dirtColor = 0x451a03;
+        } else if (season === 'qish') {
+            grassColor = 0xffffff; // Qish (Snow white)
+            leavesColor = 0x0f766e; // Winter frosted dark teal pine leaves
+            dirtColor = 0x374151; // Frozen grey dirt
+        }
+
+        this.grassMat.color.setHex(grassColor);
+        this.leavesMat.color.setHex(leavesColor);
+        this.dirtMat.color.setHex(dirtColor);
+    }
 }
